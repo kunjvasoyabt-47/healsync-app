@@ -19,8 +19,10 @@ app.use(cors({
 // USE THE NEW ROUTES
 app.use("/api/auth", authRoutes);
 
-app.get("/", (req, res) => {
-    res.send("HealSync Backend is Running!");
+import { Request, Response } from 'express';
+
+app.get("/", (req: Request, res: Response) => {
+    res.send("API is running");
 });
 
 app.listen(PORT, () => {
