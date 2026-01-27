@@ -1,34 +1,30 @@
 {
   "compilerOptions": {
-    /* Target & Module settings */
     "target": "ES2020",
     "module": "CommonJS",
     "moduleResolution": "node",
-    "lib": ["ES2020"],
+    /* Add 'esnext' to lib to get console and other Node globals */
+    "lib": ["ES2020", "ESNext"], 
 
-    /* File Structure */
     "rootDir": "./src",
     "outDir": "./dist",
 
-    /* Interop & Compatibility */
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
 
-    /* Type Checking */
     "strict": true,
     "noImplicitAny": false,
     "skipLibCheck": true,
 
-    /* FIX: Removed explicit "types" and "typeRoots". 
-       This allows TS to find @types/node automatically in the local node_modules.
-    */
+    /* This tells TS exactly which types to load */
+    "types": ["node"],
     "baseUrl": ".",
     "paths": {
       "*": ["node_modules/*"]
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+  "exclude": ["node_modules", "dist"]
 }
