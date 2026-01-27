@@ -3,6 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes";
+import { Request, Response } from 'express';
 
 dotenv.config();
 
@@ -19,7 +20,6 @@ app.use(cors({
 // USE THE NEW ROUTES
 app.use("/api/auth", authRoutes);
 
-import { Request, Response } from 'express';
 
 app.get("/", (req: Request, res: Response) => {
     res.send("API is running");

@@ -8,6 +8,7 @@
     "target": "es2016",
     "module": "commonjs",             /* Standard for Node.js backends */
     "esModuleInterop": true,          /* Allows 'import express from "express"' */
+    "types": ["node"],
 
     /* Strict Type-Checking */
     "strict": true,
