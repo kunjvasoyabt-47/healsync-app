@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "dev": "nodemon src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "postinstall": "prisma generate"
-  },
+ "scripts": {
+  "dev": "nodemon src/index.ts",
+  "prebuild": "npm install @types/node",
+  "build": "tsc",
+  "start": "node dist/index.js",
+  "postinstall": "prisma generate"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
