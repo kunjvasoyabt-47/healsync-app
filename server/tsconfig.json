@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    /* File Structure */
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    /* Module settings for Node.js */
+    "target": "es2016",
+    "module": "commonjs",             /* Standard for Node.js backends */
+    "esModuleInterop": true,          /* Allows 'import express from "express"' */
+
+    /* Strict Type-Checking */
+    "strict": true,
+    "skipLibCheck": true,             /* Skips checking inside node_modules (faster) */
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*"]
+}
