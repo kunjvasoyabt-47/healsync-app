@@ -18,13 +18,17 @@
 
     /* Type Checking */
     "strict": true,
-    "noImplicitAny": false,           /* Helps bypass "implicit any" errors during rapid deployment */
-    "skipLibCheck": true,             /* CRITICAL: Ignores type errors in node_modules */
-    
-    /* Types - Explicitly pointing to Node and Prisma */
-    "types": ["node"],
-    "typeRoots": ["./node_modules/@types"]
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+
+    /* FIX: Removed explicit "types" and "typeRoots". 
+       This allows TS to find @types/node automatically in the local node_modules.
+    */
+    "baseUrl": ".",
+    "paths": {
+      "*": ["node_modules/*"]
+    }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }
