@@ -9,6 +9,7 @@
     "module": "commonjs",             /* Standard for Node.js backends */
     "esModuleInterop": true,          /* Allows 'import express from "express"' */
     "types": ["node"],
+    "typeRoots": ["./node_modules/@types"],
 
     /* Strict Type-Checking */
     "strict": true,
