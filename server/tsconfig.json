@@ -3,8 +3,7 @@
     "target": "ES2020",
     "module": "CommonJS",
     "moduleResolution": "node",
-    /* Add 'esnext' to lib to get console and other Node globals */
-    "lib": ["ES2020", "ESNext"], 
+    "lib": ["ES2020", "ESNext"],
 
     "rootDir": "./src",
     "outDir": "./dist",
@@ -18,7 +17,6 @@
     "noImplicitAny": false,
     "skipLibCheck": true,
 
-    /* This tells TS exactly which types to load */
     "types": ["node"],
     "baseUrl": ".",
     "paths": {
