@@ -21,7 +21,6 @@ enum ApptStatus {
   PAID
   REJECTED
   COMPLETED
-  CANCELLED
 }
 
 enum PaymentStatus {
@@ -113,7 +112,7 @@ model Availability {
   startTime      String        
   endTime        String        
   slotDuration   Int           @default(30)
-  isActive       Boolean       @default(true)
+  isBookable     Boolean       @default(true)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   
