@@ -1,18 +1,28 @@
 {
   "compilerOptions": {
-    /* File Structure */
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "lib": ["ES2020", "ESNext"],
+
     "rootDir": "./src",
     "outDir": "./dist",
 
-    /* Module settings for Node.js */
-    "target": "es2016",
-    "module": "commonjs",             /* Standard for Node.js backends */
-    "esModuleInterop": true,          /* Allows 'import express from "express"' */
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
 
-    /* Strict Type-Checking */
     "strict": true,
-    "skipLibCheck": true,             /* Skips checking inside node_modules (faster) */
-    "forceConsistentCasingInFileNames": true
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "*": ["node_modules/*"]
+    }
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
