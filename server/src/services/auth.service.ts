@@ -40,6 +40,25 @@ export const authService = {
     },
 
     /**
+     * Handles the logout process by revoking the specific refresh token
+     */
+    logout: async (refreshToken: string) => {
+        if (!refreshToken) throw new Error("Refresh token is required");
+        
+        const result = await prisma.refreshToken.updateMany({
+            where: { 
+                token: refreshToken.trim(),
+                revoked: false 
+            },
+            data: { revoked: true },
+        });
+
+        if (result.count === 0) throw new Error("Session not found or already revoked");
+        
+        return true;
+    },
+
+    /**
      * Handles credentials validation and session management
      */
     loginUser: async (credentials: any) => {
