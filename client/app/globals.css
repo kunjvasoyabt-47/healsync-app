@@ -1,3 +1,50 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  /* --- Static Brand Colors --- */
+  --color-primary: #1a8a7f;
+  --color-primary-hover: #136a61;
+  --color-danger: #ef4444;
+
+  /* --- Mapping CSS Variables to Tailwind Utilities --- */
+  --color-bg-body: var(--bg-body);
+  --color-bg-surface: var(--bg-surface);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+  --color-border-main: var(--border-color);
+  
+  --color-bg-card: var(--bg-card);
+  --color-text-card-title: var(--text-card-title);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+}
+
+/* --- Dynamic Theme Defaults (:root) --- */
+:root {
+  /* Body & Surface */
+  --bg-body: #ffffff;
+  --bg-surface: #f9fafb;
+  --text-main: #111827;
+  --text-muted: #4b5563;
+  --border-color: #e5e7eb;
+  --nav-bg: #ffffff;
+  
+  /* Card Specifics */
+  --bg-card: #ffffff;
+  --bg-card-image: #ffffff; 
+  --border-card: #e5e7eb;
+  --text-card-title: #1f2937;
+  --text-card-price: #0f172a;
+  
+  /* Elevation */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+@layer base {
+  body {
+    @apply bg-bg-body text-text-main antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}

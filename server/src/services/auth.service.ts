@@ -2,6 +2,7 @@ import { prisma } from "../config/db";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
+import crypto from "crypto"; // Required for secure reset tokens
 
 export const authService = {
     /**
@@ -131,5 +132,72 @@ export const authService = {
             data: { revoked: true },
         });
         return result.count > 0;
+    },
+
+    /**
+     * Generates a secure password reset token
+     */
+   generateResetToken: async (email: string) => {
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) throw new Error("No account found with this email");
+
+        const resetToken = crypto.randomBytes(32).toString("hex");
+        const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); //  10 minutes
+
+        // Delete any existing unused tokens for this user
+        await prisma.passwordResetToken.deleteMany({ 
+            where: { userId: user.id } 
+        });
+
+        // Create new token
+        await prisma.passwordResetToken.create({
+            data: {
+                token: hashedToken,
+                expiresAt,
+                userId: user.id
+            }
+        });
+
+        return resetToken; // Return UNHASHED token for URL
+    },
+    /**
+     * Resets the password using a valid token
+     */
+   resetPassword: async (token: string, newPassword: string) => {
+        const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+        const tokenData = await prisma.passwordResetToken.findUnique({
+            where: { token: hashedToken },
+            include: { user: true }
+        });
+
+        // ✅ Check if token exists, is not used, and not expired
+        if (!tokenData || tokenData.used || tokenData.expiresAt < new Date()) {
+            throw new Error("Invalid or expired reset token");
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // ✅ Update password and mark token as used (not delete)
+        await prisma.$transaction([
+            prisma.user.update({
+                where: { id: tokenData.userId },
+                data: { 
+                    password: hashedPassword,
+                    tokenVersion: { increment: 1 } // ✅ Invalidate all sessions
+                }
+            }),
+            prisma.passwordResetToken.update({
+                where: { id: tokenData.id },
+                data: { used: true }
+            }),
+            // ✅ Delete all refresh tokens (logout from all devices)
+            prisma.refreshToken.deleteMany({
+                where: { userId: tokenData.userId }
+            })
+        ]);
+
+        return true;
     }
 };
