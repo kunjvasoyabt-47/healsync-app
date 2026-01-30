@@ -2,15 +2,15 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-
+import path from "path";
 import authRoutes from "./routes/authRoutes";
 import doctorRoutes from "./routes/doctorRoutes";
 import patientRoutes from "./routes/patientRoutes";
 
-// 👉 IMPORT CENTRAL ROUTES
 import { AUTH_ROUTES, DOCTOR_ROUTES, PATIENT_ROUTES } from "./config/routes";
 
 dotenv.config();
+console.log("DEBUG - EMAIL_USER VALUE:", `'${process.env.EMAIL_USER}'`);
 
 const app = express();
 const PORT = process.env.PORT || 10000; // Render uses 10000 by default

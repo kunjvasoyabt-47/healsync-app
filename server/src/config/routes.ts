@@ -7,6 +7,8 @@ export const AUTH_ROUTES = {
   REGISTER: "/register",
   LOGIN: "/login",
   LOGOUT: "/logout",
+  FORGET_PASSWORD: "/forgot-password",
+  RESET_PASSWORD: "/reset-password",
 };
 
 // Doctor routes
