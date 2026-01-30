@@ -18,12 +18,16 @@ const PORT = process.env.PORT || 10000; // Render uses 10000 by default
 // Middlewares
 app.use(express.json());
 app.use(cookieParser());
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    credentials: true
-  })
-);
+app.use(cors({
+  // Use the env variable from Render, but keep localhost for your own testing
+  origin: [
+    "https://healsync-app.vercel.app", 
+    "http://localhost:3000"
+  ],
+  credentials: true, // Required for cookies/sessions
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 // Routes (USING ROUTE CONSTANTS)
 app.use(AUTH_ROUTES.BASE, authRoutes);
