@@ -4,7 +4,7 @@
   /* --- Static Brand Colors --- */
   --color-primary: #1a8a7f;
   --color-primary-hover: #136a61;
-  --color-danger: #ef4444;
+  --color-danger: #ef0d0d;
 
   /* --- Mapping CSS Variables to Tailwind Utilities --- */
   --color-bg-body: var(--bg-body);
