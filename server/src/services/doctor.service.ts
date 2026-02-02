@@ -1,35 +1,56 @@
 import { prisma } from "../config/db";
+import { DoctorFilters } from "../interfaces/doctorfilter";
 
 export const doctorService = {
-  /**
-   * Business logic to fetch all users with the DOCTOR role
-   * Includes their professional profile details
-   */
-  fetchAllDoctors: async () => {
+  fetchAllDoctors: async (filters: DoctorFilters) => {
+    const { name, city, specialization } = filters;
+
+    const where: any = {
+      role: "DOCTOR",
+    };
+
+    if (name || city || specialization) {
+      // If filters are present, apply them directly to the relation
+      where.doctorProfile = {
+        ...(name && { name: { contains: name, mode: 'insensitive' } }),
+        ...(city && { city: { contains: city, mode: 'insensitive' } }),
+        ...(specialization && { specialization: { contains: specialization, mode: 'insensitive' } }),
+      };
+    } else {
+      // Default: Ensure profile exists
+      where.doctorProfile = { isNot: null };
+    }
+
     return await prisma.user.findMany({
-      where: { role: "DOCTOR" },
+      where,
       select: {
         id: true,
         email: true,
-        doctorProfile: true, // Includes specialization, fees, etc.
+        doctorProfile: {
+          select: {
+            name: true,
+            specialization: true,
+            city: true,
+            fees: true,
+            experience: true,
+            bio: true,
+          }
+        },
       }
     });
   },
 
-  /**
-   * Business logic to fetch a specific doctor by their ID
-   */
   fetchDoctorById: async (id: string) => {
     const doctor = await prisma.user.findUnique({
       where: { id },
       select: {
         id: true,
         email: true,
-        doctorProfile: true
+        doctorProfile: true 
       }
     });
 
-    if (!doctor || doctor.doctorProfile === null) {
+    if (!doctor || !doctor.doctorProfile) {
       throw new Error("Doctor not found");
     }
 

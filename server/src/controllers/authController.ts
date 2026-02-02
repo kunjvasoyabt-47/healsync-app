@@ -18,6 +18,8 @@ export const register = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
+
+    try{
   // Logic for login (You can create a separate loginSchema for this)
   const result = await authService.loginUser(req.body);
 
@@ -26,7 +28,7 @@ export const login = async (req: Request, res: Response) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
-        maxAge: 15 * 60 * 1000 // 15 minutes
+        maxAge: 10* 1000 // 15 minutes
     });
 
     // 3. Return the 'refreshToken' (NOT 'token') to the frontend
@@ -36,6 +38,9 @@ export const login = async (req: Request, res: Response) => {
         role: result.role,
         profileId: result.profileId
     });
+}catch(err:any){
+    res.status(401).json({ message: err.message || "Unauthorized" });
+}
 };
 
 export const logout = async (req: Request, res: Response) => {
@@ -120,4 +125,55 @@ export const resetPassword = async (req: Request, res: Response) => {
             message: "Internal server error." 
         });
     }
+};
+export const getMe = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // 1. Extract userId from the request (attached by your middleware)
+    const userId = (req as any).user?.userId;
+
+    if (!userId) {
+      res.status(401).json({ message: "Unauthorized: No user ID found" });
+      return;
+    }
+
+    // 2. Call the service to get user data
+    const user = await authService.fetchMe(userId);
+
+    // 3. Return user data to frontend
+    res.status(200).json({ user });
+  } catch (error: any) {
+    // 4. Handle errors (like User not found or DB issues)
+    if (error.message === "User not found") {
+      res.status(404).json({ message: error.message });
+    } else {
+      console.error("GetMe Controller Error:", error);
+      res.status(500).json({ message: "Failed to get user data" });
+    }
+  }
+};
+/**
+ * Controller to handle automatic token rotation
+ */
+export const refresh = async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) return res.status(401).json({ error: "No refresh token" });
+
+    // 1. Verify the refresh token in your service
+    const newAccessToken = await authService.refreshSession(refreshToken); 
+
+    // 2. Set the NEW Access Token in the cookie
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // 'lax' is best for local cross-port development
+      path: "/",       // Ensures the cookie is sent to all API routes
+      maxAge: 10 * 1000 // 15 minutes
+    });
+
+    return res.status(200).json({ message: "Token refreshed successfully" });
+  } catch (err) {
+    // If refresh token is expired/revoked, force a logout
+    return res.status(401).json({ error: "Invalid session" });
+  }
 };

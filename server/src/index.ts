@@ -2,12 +2,12 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import path from "path";
 import authRoutes from "./routes/authRoutes";
 import doctorRoutes from "./routes/doctorRoutes";
 import patientRoutes from "./routes/patientRoutes";
+import availabilityRoutes from "./routes/availabilityRoutes";
 
-import { AUTH_ROUTES, DOCTOR_ROUTES, PATIENT_ROUTES } from "./config/routes";
+import { AUTH_ROUTES, AVAILABILITY_ROUTES, DOCTOR_ROUTES, PATIENT_ROUTES } from "./config/routes";
 
 dotenv.config();
 console.log("DEBUG - EMAIL_USER VALUE:", `'${process.env.EMAIL_USER}'`);
@@ -21,7 +21,7 @@ app.use(cookieParser());
 app.use(cors({
   // Use the env variable from Render, but keep localhost for your own testing
   origin: [
-    "https://healsync-app.vercel.app", 
+    // "https://healsync-app.vercel.app", 
     "http://localhost:3000"
   ],
   credentials: true, // Required for cookies/sessions
@@ -33,6 +33,7 @@ app.use(cors({
 app.use(AUTH_ROUTES.BASE, authRoutes);
 app.use(DOCTOR_ROUTES.BASE, doctorRoutes);
 app.use(PATIENT_ROUTES.BASE, patientRoutes);
+app.use(AVAILABILITY_ROUTES.BASE, availabilityRoutes);
 
 // Health check
 app.get("/", (req, res) => {
