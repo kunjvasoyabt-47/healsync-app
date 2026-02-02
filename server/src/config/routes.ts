@@ -9,6 +9,8 @@ export const AUTH_ROUTES = {
   LOGOUT: "/logout",
   FORGET_PASSWORD: "/forgot-password",
   RESET_PASSWORD: "/reset-password",
+  ME: "/me",
+  REFRESH_TOKEN: "/refresh-token",
 };
 
 // Doctor routes
@@ -22,4 +24,10 @@ export const DOCTOR_ROUTES = {
 export const PATIENT_ROUTES = {
   BASE: `${API_BASE}/patients`,
   ME: "/me",
+};
+
+export const AVAILABILITY_ROUTES = {
+  BASE: `${API_BASE}/availability`,
+  SET: "/set",
+  GET: "/get/:id",
 };
