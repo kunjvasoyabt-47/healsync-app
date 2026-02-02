@@ -1,1 +1,0 @@
-{"version":3,"file":"doctorRoutes.js","sourceRoot":"","sources":["../../src/routes/doctorRoutes.ts"],"names":[],"mappings":";;;;;AAAA,sDAA8B;AAC9B,sEAA+E;AAC/E,6CAAiD;AAEjD,MAAM,MAAM,GAAG,iBAAO,CAAC,MAAM,EAAE,CAAC;AAEhC,uBAAuB;AACvB,MAAM,CAAC,GAAG,CAAC,sBAAa,CAAC,OAAO,EAAE,gCAAa,CAAC,CAAC;AACjD,MAAM,CAAC,GAAG,CAAC,sBAAa,CAAC,SAAS,EAAE,gCAAa,CAAC,CAAC;AAEnD,kBAAe,MAAM,CAAC"}
