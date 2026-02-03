@@ -31,3 +31,8 @@ export const AVAILABILITY_ROUTES = {
   SET: "/set",
   GET: "/get/:id",
 };
+export const APPOINTMENT_ROUTES = {
+  CREATE: "/appointments/create",
+  GET_MY_APPOINTMENTS: "/appointments/my-appointments",
+  // Add other appointment routes here
+};
