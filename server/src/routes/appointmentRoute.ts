@@ -1,5 +1,5 @@
 import express from "express";
-import * as multer from 'multer';
+import multer from 'multer';
 import { createAppointment, getPatientAppointments } from "../controllers/appointmentController";
 import { verifyToken}  from "../middle/authMiddleware";
 import { APPOINTMENT_ROUTES } from "../config/routes";
