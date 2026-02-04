@@ -49,7 +49,7 @@ export default function LoginClient() {
           <div className="inline-flex p-3 bg-primary/10 rounded-full mb-4">
             <LogIn className="w-8 h-8 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-text-main tracking-tight">Welcome Back</h1>
+          <h1 className="text-2xl font-bold text-text-main tracking-tight">Log In</h1>
           <p className="text-text-muted mt-1 text-sm">Please sign in to continue to HealSync</p>
         </div>
 

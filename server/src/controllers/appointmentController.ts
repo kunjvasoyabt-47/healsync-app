@@ -1,43 +1,46 @@
 import { Request, Response } from "express";
-import { prisma } from "../config/db";
+import * as AppointmentService from "../services/appointment.service";
 
-export const createAppointment = async (req: Request, res: Response) => {
+// Extend Request type to include properties from middleware
+interface AuthenticatedRequest extends Request {
+  file?: any;
+  user?: any;
+}
+
+export const createAppointment = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { doctorId, date, timeSlot, reason } = req.body;
-    
-    // 1. Get Patient ID from the verified token (req.user)
-    const patientId = req.user.profileId; 
+    const { doctorId, date, timeSlot, reason, symptoms } = req.body;
+    const patientUserId = req.user.userId;
+    const file = req.file; 
 
-    // 2. CONCURRENCY CHECK: Ensure no one else booked this while the user was thinking
-    const existing = await prisma.appointment.findUnique({
-      where: {
-        doctorId_date_timeSlot: {
-          doctorId,
-          date: new Date(date),
-          timeSlot
-        }
-      }
+    const appointment = await AppointmentService.createAppointmentService(
+      { doctorUserId: doctorId, patientUserId, date, timeSlot, reason, symptoms },
+      file
+    );
+
+    return res.status(201).json({
+      message: "Appointment created successfully!",
+      appointment,
     });
-
-    if (existing) {
-      return res.status(400).json({ error: "This slot was just taken. Please pick another." });
+  } catch (error: any) {
+    if (error.message === "DOCTOR_NOT_FOUND") return res.status(404).json({ error: "Doctor not found" });
+    if (error.message === "PATIENT_NOT_FOUND") return res.status(404).json({ error: "Patient profile incomplete" });
+    
+    if (error.code === "P2002") {
+      return res.status(409).json({ error: "This slot is already booked." });
     }
 
-    // 3. Create the record
-    const appointment = await prisma.appointment.create({
-      data: {
-        doctorId,
-        patientId,
-        date: new Date(date),
-        timeSlot,
-        reason,
-        status: "PENDING"
-      }
-    });
+    console.error("Controller Error:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
-    res.status(201).json({ message: "Appointment requested successfully", appointment });
+export const getPatientAppointments = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user.userId;
+    const appointments = await AppointmentService.getPatientAppointmentsService(userId);
+    return res.status(200).json(appointments);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error during booking" });
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };

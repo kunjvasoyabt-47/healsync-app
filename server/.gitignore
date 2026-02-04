@@ -3,3 +3,10 @@ node_modules
 .env
 package-lock.json
 /generated/prisma
+
+# Compiled output
+server/dist/
+dist/
+
+# Source maps
+**/*.js.map

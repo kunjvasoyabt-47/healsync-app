@@ -18,6 +18,8 @@ export const DOCTOR_ROUTES = {
   BASE: `${API_BASE}/doctors`,
   GET_ALL: "/",
   GET_BY_ID: "/:id",
+  GET_APPOINTMENTS: "/my-appointments",
+  UPDATE_STATUS: "/update-status",
 };
 
 // Patient routes
@@ -31,8 +33,9 @@ export const AVAILABILITY_ROUTES = {
   SET: "/set",
   GET: "/get/:id",
 };
+
 export const APPOINTMENT_ROUTES = {
-  CREATE: "/appointments/create",
-  GET_MY_APPOINTMENTS: "/appointments/my-appointments",
-  // Add other appointment routes here
+  BASE: `${API_BASE}/appointments`,
+  CREATE: "/", 
+  PATIENT_APPOINTMENTS: "/patient-list",
 };

@@ -1,13 +1,15 @@
 import { prisma } from "../config/db";
-import { addMinutes, format } from "date-fns";
+import { addMinutes } from "date-fns";
 
 export const availabilityService = {
   generateDoctorSlots: async (userIdFromUrl: string, dateStr: string) => {
-    // 1. Normalize date to UTC Midnight
-    const selectedDate = new Date(`${dateStr}T00:00:00Z`);
-    const dayOfWeek = selectedDate.getUTCDay(); 
+    // 🟢 FIX: Parse the date string directly (YYYY-MM-DD). 
+    // This treats the date as "Local" to the environment, preventing UTC shifts
+    const selectedDate = new Date(dateStr);
+    
+    // 🟢 FIX: Use .getDay() instead of .getUTCDay()
+    const dayOfWeek = selectedDate.getDay(); 
 
-    // 2. Lookup Profile ID using User ID
     const profile = await prisma.doctorProfile.findUnique({
       where: { userId: userIdFromUrl },
       select: { id: true }
@@ -16,41 +18,49 @@ export const availabilityService = {
     if (!profile) return [];
     const doctorProfileId = profile.id;
 
-    // 3. Get working hours
-    const schedule = await prisma.availability.findUnique({
-      where: {
-        doctorId_dayOfWeek: { doctorId: doctorProfileId, dayOfWeek },
-      },
-    });
+  // Inside generateDoctorSlots
+const schedule = await prisma.availability.findFirst({
+  where: {
+    doctorId: doctorProfileId,
+    dayOfWeek: dayOfWeek,
+    isBookable: true,
+  },
+});
 
     if (!schedule || !schedule.isBookable) return [];
 
-    // 4. Filter Booked Appointments
-    const booked = await prisma.appointment.findMany({
-      where: {
-        doctorId: doctorProfileId,
-        date: selectedDate,
-        status: { in: ["PENDING", "APPROVED_UNPAID", "PAID"] }
-      },
-      select: { timeSlot: true }
-    });
+  const booked = await prisma.appointment.findMany({
+  where: {
+    doctorId: doctorProfileId,
+    // 🟢 Ensure we match the exact date regardless of time stored in DB
+    date: {
+      gte: new Date(selectedDate.setHours(0, 0, 0, 0)),
+      lt: new Date(selectedDate.setHours(23, 59, 59, 999)),
+    },
+    status: { in: ["PENDING", "APPROVED_UNPAID", "PAID"] }
+  },
+  select: { timeSlot: true }
+});
     
     const takenSlots = booked.map(a => a.timeSlot);
 
-    // 5. Generate Time Intervals
     const availableSlots: string[] = [];
     const [startH, startM] = schedule.startTime.split(':').map(Number);
     const [endH, endM] = schedule.endTime.split(':').map(Number);
 
+    // 🟢 FIX: Use setHours (Local) instead of setUTCHours to stay consistent
     let current = new Date(selectedDate);
-    current.setUTCHours(startH, startM, 0, 0);
+    current.setHours(startH, startM, 0, 0);
+    
     const end = new Date(selectedDate);
-    end.setUTCHours(endH, endM, 0, 0);
+    end.setHours(endH, endM, 0, 0);
 
     while (current < end) {
-        const hh = String(current.getUTCHours()).padStart(2, '0');
-        const mm = String(current.getUTCMinutes()).padStart(2, '0');
+        // 🟢 FIX: Extract local hours and minutes
+        const hh = String(current.getHours()).padStart(2, '0');
+        const mm = String(current.getMinutes()).padStart(2, '0');
         const slotStr = `${hh}:${mm}`;
+        
       if (!takenSlots.includes(slotStr)) {
         availableSlots.push(slotStr);
       }

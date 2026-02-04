@@ -18,6 +18,7 @@ export interface AuthResponse {
 export interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (userData: User) => void;
+  // Update this line to match your 3-argument function
+  login: (userData: User, refreshToken: string) => void;
   logout: () => Promise<void>;
 }

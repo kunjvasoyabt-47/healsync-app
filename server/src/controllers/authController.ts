@@ -20,15 +20,15 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
 
     try{
-  // Logic for login (You can create a separate loginSchema for this)
-  const result = await authService.loginUser(req.body);
+    // Logic for login (You can create a separate loginSchema for this)
+    const result = await authService.loginUser(req.body);
 
     // 2. Set the cookie using 'accessToken' (NOT 'token')
     res.cookie("accessToken", result.accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
-        maxAge: 10* 1000 // 15 minutes
+        maxAge: 15 * 60 * 1000 // 15 minutes
     });
 
     // 3. Return the 'refreshToken' (NOT 'token') to the frontend
@@ -168,7 +168,7 @@ export const refresh = async (req: Request, res: Response) => {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax", // 'lax' is best for local cross-port development
       path: "/",       // Ensures the cookie is sent to all API routes
-      maxAge: 10 * 1000 // 15 minutes
+      maxAge: 15 * 60 * 1000 // 15 minutes
     });
 
     return res.status(200).json({ message: "Token refreshed successfully" });

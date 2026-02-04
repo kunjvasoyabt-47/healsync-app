@@ -1,5 +1,7 @@
+import { ZodEnum } from "zod";
 import { prisma } from "../config/db";
 import { DoctorFilters } from "../interfaces/doctorfilter";
+import { ApptStatus } from "@prisma/client";
 
 export const doctorService = {
   fetchAllDoctors: async (filters: DoctorFilters) => {
@@ -55,5 +57,46 @@ export const doctorService = {
     }
 
     return doctor;
+  },
+getDoctorAppointmentsService: async (profileId: string) => {
+  console.log("=== SERVICE CALLED ===");
+  console.log("Looking for doctor with profileId:", profileId);
+  
+  const doctorProfile = await prisma.doctorProfile.findUnique({
+    where: { id: profileId },
+  });
+
+  console.log("Database returned:", doctorProfile);
+
+  if (!doctorProfile) {
+    console.log("RETURNING NULL - DOCTOR NOT FOUND");
+    return null;
+  }
+
+  const appointments = await prisma.appointment.findMany({
+    where: { doctorId: profileId },
+    include: {
+      patient: {
+        select: {
+          name: true,
+          phone: true,
+          imageUrl: true,
+        },
+      },
+    },
+    orderBy: { date: 'asc' },
+  });
+
+  console.log("Found appointments count:", appointments.length);
+  return appointments;
+},
+  /**
+   * Updates an appointment status
+   */
+  updateAppointmentStatusService: async (appointmentId: string, status: ApptStatus) => {
+    return await prisma.appointment.update({
+      where: { id: appointmentId },
+      data: { status },
+    });
   }
 };

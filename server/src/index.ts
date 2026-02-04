@@ -6,8 +6,9 @@ import authRoutes from "./routes/authRoutes";
 import doctorRoutes from "./routes/doctorRoutes";
 import patientRoutes from "./routes/patientRoutes";
 import availabilityRoutes from "./routes/availabilityRoutes";
+import appointmentRoutes from "./routes/appointmentRoute";
 
-import { AUTH_ROUTES, AVAILABILITY_ROUTES, DOCTOR_ROUTES, PATIENT_ROUTES } from "./config/routes";
+import { AUTH_ROUTES, AVAILABILITY_ROUTES, DOCTOR_ROUTES, PATIENT_ROUTES,APPOINTMENT_ROUTES } from "./config/routes";
 
 dotenv.config();
 console.log("DEBUG - EMAIL_USER VALUE:", `'${process.env.EMAIL_USER}'`);
@@ -29,11 +30,13 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
+
 // Routes (USING ROUTE CONSTANTS)
 app.use(AUTH_ROUTES.BASE, authRoutes);
 app.use(DOCTOR_ROUTES.BASE, doctorRoutes);
 app.use(PATIENT_ROUTES.BASE, patientRoutes);
 app.use(AVAILABILITY_ROUTES.BASE, availabilityRoutes);
+app.use(APPOINTMENT_ROUTES.BASE, appointmentRoutes);
 
 // Health check
 app.get("/", (req, res) => {
