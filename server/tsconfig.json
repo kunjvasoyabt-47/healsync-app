@@ -12,12 +12,12 @@
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
+    // 🟢 REMOVED: "types": ["node"]
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "noImplicitAny": true,
-    "strictNullChecks": true,
-    "types": ["node"]
+    "strictNullChecks": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
