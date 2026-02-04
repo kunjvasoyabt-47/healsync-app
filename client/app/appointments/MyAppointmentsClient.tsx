@@ -11,15 +11,15 @@ export default function MyAppointmentsClient({ initialData }: { initialData: App
     switch (status) {
     case "APPROVED_UNPAID":
     case "APPROVED":
-      return "bg-green-100 text-green-700 border-green-200"; // 🟢 Soft Green
+      return "bg-green-100 text-green-700 border-green-200"; 
     case "PAID":
-      return "bg-emerald-500 text-white border-emerald-600"; // 💹 Vibrant Green
+      return "bg-emerald-500 text-white border-emerald-600"; 
     case "PENDING":
-      return "bg-amber-100 text-amber-700 border-amber-200";  // 🟡 Yellow/Amber
+      return "bg-amber-100 text-amber-700 border-amber-200";  
     case "REJECTED":
-      return "bg-red-100 text-red-700 border-red-200";     // 🔴 Red
+      return "bg-red-100 text-red-700 border-red-200";     
     default:
-      return "bg-gray-100 text-gray-700 border-gray-200";   // ⚪ Gray
+      return "bg-gray-100 text-gray-700 border-gray-200";  
     }
   };
 
