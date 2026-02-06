@@ -26,8 +26,9 @@ export const login = async (req: Request, res: Response) => {
     // 2. Set the cookie using 'accessToken' (NOT 'token')
     res.cookie("accessToken", result.accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        //secure: process.env.NODE_ENV === "production",
+        sameSite: "none",
+        secure: true,
         maxAge: 15 * 60 * 1000 // 15 minutes
     });
 
@@ -165,8 +166,9 @@ export const refresh = async (req: Request, res: Response) => {
     // 2. Set the NEW Access Token in the cookie
     res.cookie("accessToken", newAccessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax", // 'lax' is best for local cross-port development
+      //secure: process.env.NODE_ENV === "production",
+      secure: true,
+      sameSite: "none", // 'lax' is best for local cross-port development
       path: "/",       // Ensures the cookie is sent to all API routes
       maxAge: 15 * 60 * 1000 // 15 minutes
     });

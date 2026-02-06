@@ -22,7 +22,7 @@ app.use(cookieParser());
 app.use(cors({
   // Use the env variable from Render, but keep localhost for your own testing
   origin: [
-    // "https://healsync-app.vercel.app", 
+    "https://healsync-app.vercel.app", 
     "http://localhost:3000"
   ],
   credentials: true, // Required for cookies/sessions
