@@ -44,19 +44,23 @@ export const authService = {
      * Handles the logout process by revoking the specific refresh token
      */
     logout: async (refreshToken: string) => {
-        if (!refreshToken) throw new Error("Refresh token is required");
-        
-        const result = await prisma.refreshToken.updateMany({
-            where: { 
-                token: refreshToken.trim(),
-                revoked: false 
-            },
-            data: { revoked: true },
-        });
+    if (!refreshToken) throw new Error("Refresh token is required");
+    
+    const result = await prisma.refreshToken.updateMany({
+        where: { 
+            token: refreshToken.trim(),
+            revoked: false 
+        },
+        data: { revoked: true },
+    });
 
-        if (result.count === 0) throw new Error("Session not found or already revoked");
-        
-        return true;
+    // 🟢 CHANGED: Instead of throwing an error, just log it.
+    if (result.count === 0) {
+        console.warn("Logout: Token was already revoked or didn't exist.");
+    }
+    
+    // Always return true because the end result (no active session) is met
+    return true;
     },
 
     /**
@@ -143,7 +147,7 @@ export const authService = {
 
         const resetToken = crypto.randomBytes(32).toString("hex");
         const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
-        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); //  10 minutes
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000); //  10 minutes
 
         // Delete any existing unused tokens for this user
         await prisma.passwordResetToken.deleteMany({ 
@@ -164,41 +168,53 @@ export const authService = {
     /**
      * Resets the password using a valid token
      */
-   resetPassword: async (token: string, newPassword: string) => {
-        const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+ resetPassword: async (token: string, newPassword: string) => {
+    // 1. Trim the token to remove any hidden spaces or newlines from the URL
+    const cleanToken = token.trim(); 
+    const hashedToken = crypto.createHash("sha256").update(cleanToken).digest("hex");
 
-        const tokenData = await prisma.passwordResetToken.findUnique({
-            where: { token: hashedToken },
-            include: { user: true }
-        });
+    const tokenData = await prisma.passwordResetToken.findUnique({
+        where: { token: hashedToken },
+        include: { user: true }
+    });
 
-        // ✅ Check if token exists, is not used, and not expired
-        if (!tokenData || tokenData.used || tokenData.expiresAt < new Date()) {
-            throw new Error("Invalid or expired reset token");
-        }
+    // 2. Add specific logging to catch the exact cause of failure
+    if (!tokenData) {
+        console.error("Reset Error: Token hash not found in database.");
+        throw new Error("Invalid or expired reset token");
+    }
+    
+    if (tokenData.used) {
+        console.error("Reset Error: Token has already been used.");
+        throw new Error("Invalid or expired reset token");
+    }
 
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
+    if (tokenData.expiresAt < new Date()) {
+        console.error(`Reset Error: Token expired at ${tokenData.expiresAt}. Current time: ${new Date()}`);
+        throw new Error("Invalid or expired reset token");
+    }
 
-        // ✅ Update password and mark token as used (not delete)
-        await prisma.$transaction([
-            prisma.user.update({
-                where: { id: tokenData.userId },
-                data: { 
-                    password: hashedPassword,
-                    tokenVersion: { increment: 1 } // ✅ Invalidate all sessions
-                }
-            }),
-            prisma.passwordResetToken.update({
-                where: { id: tokenData.id },
-                data: { used: true }
-            }),
-            // ✅ Delete all refresh tokens (logout from all devices)
-            prisma.refreshToken.deleteMany({
-                where: { userId: tokenData.userId }
-            })
-        ]);
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        return true;
+    // Keep your existing transaction logic exactly as it is
+    await prisma.$transaction([
+        prisma.user.update({
+            where: { id: tokenData.userId },
+            data: { 
+                password: hashedPassword,
+                tokenVersion: { increment: 1 }
+            }
+        }),
+        prisma.passwordResetToken.update({
+            where: { id: tokenData.id },
+            data: { used: true }
+        }),
+        prisma.refreshToken.deleteMany({
+            where: { userId: tokenData.userId }
+        })
+    ]);
+
+    return true;
     },
    fetchMe: async (userId: string) => {
     const user = await prisma.user.findUnique({

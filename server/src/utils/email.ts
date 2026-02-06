@@ -9,12 +9,10 @@ export const sendEmail = async (options: {
   
   // Mailtrap Configuration
   const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || "sandbox.smtp.mailtrap.io",
-    port: Number(process.env.EMAIL_PORT) || 2525,
-    secure: false, // Must be false for Port 2525 or 587
+    service: "gmail", // Using Gmail's SMTP for real email sending
     auth: {
-      user: process.env.EMAIL_USER, // Your Mailtrap Username
-      pass: process.env.EMAIL_PASS, // Your Mailtrap Password
+      user: process.env.EMAIL_USER, //  Username
+      pass: process.env.EMAIL_PASS, //  Password
     },
     // Adding timeouts helps prevent the "Connection Timeout" error
     connectionTimeout: 10000, 
