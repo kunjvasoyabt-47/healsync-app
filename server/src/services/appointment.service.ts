@@ -11,9 +11,9 @@ export const createAppointmentService = async (
     reason?: string;
     symptoms?: string;
   },
-  file?: any // Binary file from Multer
+  file?: any 
 ) => {
-  // 1. Resolve Profiles using User IDs
+  // 1. Resolve Profiles (Keep outside transaction to reduce lock time)
   const doctorProfile = await prisma.doctorProfile.findUnique({ 
     where: { userId: data.doctorUserId } 
   });
@@ -24,7 +24,7 @@ export const createAppointmentService = async (
   });
   if (!patientProfile) throw new Error("PATIENT_NOT_FOUND");
 
-  // 2. Upload to Cloudinary using Stream
+  // 2. Upload to Cloudinary
   let reportUrl = null;
   if (file) {
     const uploadRes: any = await new Promise((resolve, reject) => {
@@ -40,18 +40,35 @@ export const createAppointmentService = async (
     reportUrl = uploadRes.secure_url;
   }
 
-  // 3. Create record in Database
-  return await prisma.appointment.create({
-    data: {
-      doctorId: doctorProfile.id,
-      patientId: patientProfile.id,
-      date: new Date(data.date),
-      timeSlot: data.timeSlot,
-      reason: data.reason || "General Consultation",
-      symptoms: data.symptoms || null,
-      reportUrl: reportUrl,
-      status: ApptStatus.PENDING,
-    },
+  // 3. Use a Transaction to prevent Race Conditions
+  return await prisma.$transaction(async (tx) => {
+    // Check if slot is taken using the unique index
+    const existing = await tx.appointment.findUnique({
+      where: {
+        doctorId_date_timeSlot: {
+          doctorId: doctorProfile.id,
+          date: new Date(data.date),
+          timeSlot: data.timeSlot,
+        },
+      },
+    });
+
+    if (existing) {
+      throw new Error("SLOT_ALREADY_BOOKED");
+    }
+
+    return await tx.appointment.create({
+      data: {
+        doctorId: doctorProfile.id,
+        patientId: patientProfile.id,
+        date: new Date(data.date),
+        timeSlot: data.timeSlot,
+        reason: data.reason || "General Consultation",
+        symptoms: data.symptoms || null,
+        reportUrl: reportUrl,
+        status: ApptStatus.PENDING,
+      },
+    });
   });
 };
 
