@@ -1,8 +1,9 @@
 import express from "express";
 import multer from 'multer';
-import { createAppointment, getPatientAppointments } from "../controllers/appointmentController";
+import { approveAppointment, createAppointment, getPatientAppointments } from "../controllers/appointmentController";
 import { verifyToken}  from "../middle/authMiddleware";
 import { APPOINTMENT_ROUTES } from "../config/routes";
+
 
 const router = express.Router();
 
@@ -24,4 +25,5 @@ router.get(
   getPatientAppointments
 );
 
+router.post("/approve/:id", verifyToken, approveAppointment);
 export default router;

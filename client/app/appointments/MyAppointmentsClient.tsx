@@ -10,10 +10,11 @@ export default function MyAppointmentsClient({ initialData }: { initialData: App
   const getStatusStyle = (status: string) => {
     switch (status) {
     case "APPROVED_UNPAID":
+         return "bg-yellow-100 text-yellow-700 border-yellow-200";
     case "APPROVED":
       return "bg-green-100 text-green-700 border-green-200"; 
     case "PAID":
-      return "bg-emerald-500 text-white border-emerald-600"; 
+      return "bg-green-100 text-green-700 border-green-200"; 
     case "PENDING":
       return "bg-amber-100 text-amber-700 border-amber-200";  
     case "REJECTED":

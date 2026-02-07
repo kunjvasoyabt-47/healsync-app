@@ -77,3 +77,22 @@ export const getPatientAppointments = async (req: AuthenticatedRequest, res: Res
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+export const approveAppointment = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params; // Appointment ID from URL
+    const result = await AppointmentService.approveAppointmentService(id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Appointment approved and payment link sent to patient.",
+      data: result
+    });
+  } catch (error: any) {
+    console.error("Approve Controller Error:", error.message);
+    return res.status(500).json({ 
+      success: false, 
+      message: error.message || "Internal Server Error" 
+    });
+  }
+};

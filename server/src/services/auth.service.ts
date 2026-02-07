@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import crypto from "crypto"; // Required for secure reset tokens
+import { sendEmail } from "../utils/email";
 
 export const authService = {
     /**
@@ -147,14 +148,12 @@ export const authService = {
 
         const resetToken = crypto.randomBytes(32).toString("hex");
         const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
-        const expiresAt = new Date(Date.now() + 60 * 60 * 1000); //  10 minutes
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-        // Delete any existing unused tokens for this user
         await prisma.passwordResetToken.deleteMany({ 
             where: { userId: user.id } 
         });
 
-        // Create new token
         await prisma.passwordResetToken.create({
             data: {
                 token: hashedToken,
@@ -163,7 +162,41 @@ export const authService = {
             }
         });
 
-        return resetToken; // Return UNHASHED token for URL
+        // 🟢 NEW: Construct the Reset Link and send the Email
+        const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+        try {
+            await sendEmail({
+                email: user.email,
+                subject: "HealSync: Password Reset Request",
+                message: `
+                  <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+                    <h2 style="color: #4CAF50;">Reset Your Password</h2>
+                    <p>You requested a password reset for your HealSync account. Click the button below to set a new password:</p>
+                    <a href="${resetLink}" style="
+                      display: inline-block;
+                      padding: 12px 24px;
+                      background-color: #4CAF50;
+                      color: white;
+                      text-decoration: none;
+                      border-radius: 5px;
+                      font-weight: bold;
+                    ">Reset Password</a>
+                    <p style="margin-top: 20px; font-size: 12px; color: #666;">
+                      This link will expire in 10 minutes. If you did not request this, please ignore this email.
+                    </p>
+                  </div>
+                `,
+            });
+            console.log(`✅ Reset email sent to ${user.email}`);
+        } catch (error) {
+            console.error("❌ Failed to send reset email:", error);
+            // We don't necessarily want to crash the whole process if email fails, 
+            // but for a password reset, it's usually better to throw so the user knows.
+            throw new Error("Could not send reset email. Please try again later.");
+        }
+
+        return resetToken; 
     },
     /**
      * Resets the password using a valid token

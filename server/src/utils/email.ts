@@ -1,54 +1,33 @@
-// backend/src/utils/email.ts
 import nodemailer from "nodemailer";
 
-export const sendEmail = async (options: { 
-  email: string; 
-  subject: string; 
-  message: string 
-}): Promise<void> => {
-  
-  // Mailtrap Configuration
+interface EmailOptions {
+  email: string;
+  subject: string;
+  message: string; // This will now act as the full HTML body
+}
+
+export const sendEmail = async (options: EmailOptions): Promise<void> => {
   const transporter = nodemailer.createTransport({
-    service: "gmail", // Using Gmail's SMTP for real email sending
+   service:"gmail",
     auth: {
-      user: process.env.EMAIL_USER, //  Username
-      pass: process.env.EMAIL_PASS, //  Password
+      user: process.env.EMAIL_USER, 
+      pass: process.env.EMAIL_PASS, 
     },
-    // Adding timeouts helps prevent the "Connection Timeout" error
-    connectionTimeout: 10000, 
-    greetingTimeout: 10000,
-    socketTimeout: 10000,
   });
 
-  const mailOptions = {
-    from: '"HealSync Support" <support@healsync.com>',
+ const mailOptions = {
+    from: `"HealSync Support" <${process.env.EMAIL_USER}>`,
     to: options.email,
     subject: options.subject,
-    html: `
-      <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
-        <h2 style="color: #4CAF50;">Password Reset Request</h2>
-        <p>You requested to reset your password for HealSync. Please click the button below:</p>
-        <a href="${options.message}" style="
-          display: inline-block;
-          padding: 12px 24px;
-          background-color: #4CAF50;
-          color: white;
-          text-decoration: none;
-          border-radius: 5px;
-          font-weight: bold;
-        ">Reset Password</a>
-        <p style="margin-top: 20px; font-size: 12px; color: #666;">
-          This link will expire in 10 minutes. If you did not request this, please ignore this email.
-        </p>
-      </div>
-    `,
+    html: options.message,
   };
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log("✅ Email sent to Mailtrap successfully");
+    console.log("✅ Mailtrap Connection Verified");
+    console.log(`✅ Email delivered to ${options.email}`);
   } catch (error) {
-    console.error("❌ Mailtrap Error:", error);
+    console.error("Mailtrap Error:", error);
     throw error;
   }
 };
