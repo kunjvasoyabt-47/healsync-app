@@ -20,8 +20,8 @@ export const createAppointment = async (req: AuthenticatedRequest, res: Response
     }
 
     const patientUserId = req.user.userId;
-    const file = req.file; 
-
+    const file = req.file as any;
+    
     const appointment = await AppointmentService.createAppointmentService(
       { 
         doctorUserId: doctorId, 
