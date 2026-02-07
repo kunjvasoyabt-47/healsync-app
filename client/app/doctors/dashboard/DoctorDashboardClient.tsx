@@ -1,25 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react"; // Added useEffect
+import { useState, useEffect } from "react";
 import api from "../../../src/lib/axios";
 import { Appointment } from "@/src/interfaces/appointment.interface";
-import { DOCTOR_ROUTES } from "../../../src/routes/routes";
 
 export default function DoctorDashboardClient({ doctorId }: { doctorId: string }) {
   const [activeTab, setActiveTab] = useState<"appointments" | "analysis">("appointments");
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   
-  // --- NEW STATE FOR APPOINTMENTS ---
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [fetching, setFetching] = useState(true);
 
-  // --- FETCH APPOINTMENTS ON MOUNT ---
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
         const res = await api.get("/doctors/my-appointments");
-        // Accessing .data.data because your controller returns { success: true, data: [...] }
         setAppointments(res.data.data || []);
       } catch (err) {
         console.error("Failed to fetch appointments", err);
@@ -30,22 +26,50 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
     fetchAppointments();
   }, []);
 
-  // --- HANDLE STATUS UPDATE (Accept/Reject) ---
+  // --- REFINED HANDLE STATUS UPDATE ---
   const handleUpdateStatus = async (appointmentId: string, newStatus: string) => {
-  try {
-    await api.patch("/doctors/update-status", { appointmentId, status: newStatus });
-    
-    setAppointments((prev) =>
-      prev.map((appt) =>
-        appt.id === appointmentId 
-          ? { ...appt, status: newStatus as Appointment["status"] } // 🟢 Cast as any or your specific Status Type
-          : appt
-      )
-    );
-  } catch (err) {
-    alert("Failed to update status");
-  }
-};
+    setLoading(true); 
+    try {
+      // For approvals, we use the specific endpoint that handles Stripe and Email
+      const endpoint = newStatus === "APPROVED_UNPAID" 
+        ? `/appointments/approve/${appointmentId}` 
+        : "/doctors/update-status";
+      
+      const payload = newStatus === "APPROVED_UNPAID" 
+        ? {} 
+        : { appointmentId, status: newStatus };
+
+      // Use POST for the specific approve endpoint, PATCH for general status updates
+      if (newStatus === "APPROVED_UNPAID") {
+        await api.post(endpoint);
+      } else {
+        await api.patch(endpoint, payload);
+      }
+      
+      setAppointments((prev) =>
+        prev.map((appt) =>
+          appt.id === appointmentId 
+            ? { ...appt, status: newStatus as Appointment["status"] } 
+            : appt
+        )
+      );
+
+      if (newStatus === "APPROVED_UNPAID") {
+        alert("Appointment approved! The payment link has been sent to the patient.");
+      } else if (newStatus === "REJECTED") {
+        alert("Appointment has been rejected.");
+      }
+
+    } catch (err: unknown) {
+      console.error("Status Update Error:", err);
+      const errorMessage = err instanceof Error && 'response' in err 
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message 
+        : "Failed to update status";
+      alert(errorMessage || "Failed to update status");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const [formData, setFormData] = useState({
     dayOfWeek: 0,
@@ -61,14 +85,17 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
       await api.post(`/availability/${doctorId}/set-schedule`, formData);
       alert("Slot created successfully!");
       setShowModal(false);
-    } catch (err) {
-      alert("Failed to create slot");
+    } catch (err: unknown) {
+      console.error("Create slot error:", err);
+      const errorMessage = err instanceof Error && 'response' in err 
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message 
+        : "Failed to create slot";
+      alert(errorMessage || "Failed to create slot");
     } finally {
       setLoading(false);
     }
   };
 
-  // Helper for Badge Colors
   const getStatusColor = (status: string) => {
     switch (status) {
       case "APPROVED":
@@ -93,7 +120,6 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
           </button>
         </div>
 
-        {/* --- TABS --- */}
         <div className="flex gap-4 border-b border-border-main mb-6">
           {["appointments", "analysis"].map((tab) => (
             <button
@@ -110,7 +136,6 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
           ))}
         </div>
 
-        {/* --- CONTENT --- */}
         <div className="bg-bg-card p-6 rounded-3xl border border-border-main shadow-sm min-h-[400px]">
           {activeTab === "appointments" ? (
             fetching ? (
@@ -138,27 +163,27 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
                             {appt.status}
                           </span>
                         </td>
-                      <td className="py-4 text-right">
-                        {appt.status === "PENDING" && (
-                          <div className="flex justify-end gap-3">
-                            {/* --- ACCEPT BUTTON (Matching your image) --- */}
-                            <button 
-                              onClick={() => handleUpdateStatus(appt.id, "APPROVED_UNPAID")}
-                              className="px-6 py-2 bg-[#1A7A7F] hover:opacity-90 text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50"
-                            >
-                              Accept
-                            </button>
+                        <td className="py-4 text-right">
+                          {appt.status === "PENDING" && (
+                            <div className="flex justify-end gap-3">
+                              <button 
+                                onClick={() => handleUpdateStatus(appt.id, "APPROVED_UNPAID")}
+                                disabled={loading}
+                                className="px-6 py-2 bg-[#1A7A7F] hover:opacity-90 text-white text-xs font-bold rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50"
+                              >
+                                {loading ? "..." : "Accept"}
+                              </button>
 
-                            {/* --- REJECT BUTTON --- */}
-                            <button 
-                              onClick={() => handleUpdateStatus(appt.id, "REJECTED")}
-                              className="px-6 py-2 bg-white border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold rounded-xl transition-all active:scale-95 disabled:opacity-50"
-                            >
-                              Reject
-                            </button>
-                          </div>
-                        )}
-                      </td>
+                              <button 
+                                onClick={() => handleUpdateStatus(appt.id, "REJECTED")}
+                                disabled={loading}
+                                className="px-6 py-2 bg-white border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold rounded-xl transition-all active:scale-95 disabled:opacity-50"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -173,7 +198,6 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
         </div>
       </div>
 
-      {/* --- CREATE SLOT MODAL (Unchanged) --- */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-bg-card w-full max-w-md rounded-3xl p-8 border border-border-main shadow-md">

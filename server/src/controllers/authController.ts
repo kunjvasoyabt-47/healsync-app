@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { authService } from "../services/auth.service";
 import { registerSchema } from "../validations/auth.validation";
-import { sendEmail } from "../utils/email";
 
 export const register = async (req: Request, res: Response) => {
   // 1. Validate data (This triggers your superRefine logic)
@@ -67,29 +66,24 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
     try {
         try {
-            const resetToken = await authService.generateResetToken(email);
+            // 🟢 The email is now sent INSIDE this service function
+            await authService.generateResetToken(email);
             
-            const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-
-            await sendEmail({
-                email: email,
-                subject: "HealSync - Password Reset Request",
-                message: resetUrl,
-            });
         } catch (err: any) {
-            // ✅ Don't reveal if email exists or not (security)
+            // ✅ Security: Don't reveal if email exists or not
             if (err.message === "No account found with this email") {
                 console.log(`Password reset attempted for non-existent email: ${email}`);
-                // Continue to send success response anyway
+                // We do nothing here, just proceed to the 200 OK below
             } else {
-                throw err; // Re-throw other errors
+                throw err; // Re-throw actual system/email errors
             }
         }
 
-        // ✅ Always return success to prevent email enumeration
+        // ✅ Always return success to prevent email enumeration attacks
         res.status(200).json({
             message: "If an account exists with this email, a password reset link has been sent."
         });
+
     } catch (err) {
         console.error("Forgot Password Error:", err); 
         res.status(500).json({ message: "Internal server error." });

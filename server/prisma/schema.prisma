@@ -134,7 +134,7 @@ model Appointment {
   doctor         DoctorProfile @relation(fields: [doctorId], references: [id])
   patientId      String
   patient        PatientProfile @relation(fields: [patientId], references: [id])
-  payment        Payment?
+  payment        Payment? @relation("AppointmentToPayment")
   
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
@@ -143,12 +143,16 @@ model Appointment {
 }
 
 model Payment {
-  id              String        @id @default(uuid())
-  amount          Int           
-  stripePaymentId String        @unique
-  status          PaymentStatus @default(PENDING)
-  appointmentId   String        @unique
-  appointment     Appointment   @relation(fields: [appointmentId], references: [id])
-  paidAt          DateTime?
-  createdAt       DateTime      @default(now())
+  id               String        @id @default(uuid())
+  amount           Int           
+  stripeSessionId String @unique 
+  status           PaymentStatus @default(PENDING)
+
+  expiresAt        DateTime      
+  
+  appointmentId    String        @unique
+  appointment      Appointment   @relation("AppointmentToPayment", fields: [appointmentId], references: [id])
+  
+  paidAt           DateTime?
+  createdAt        DateTime      @default(now())
 }
