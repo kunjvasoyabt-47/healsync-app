@@ -1,6 +1,7 @@
+import React from 'react';
+
 export type UserRole = 'PATIENT' | 'DOCTOR';
 
-// 🟢 Define specific profile interfaces to ensure consistency
 export interface DoctorProfile {
   id: string;
   name: string;
@@ -23,26 +24,31 @@ export interface User {
   role: UserRole;
   createdAt?: string;
   updatedAt?: string;
-  // Use the interfaces defined above
   doctorProfile?: DoctorProfile;
   patientProfile?: PatientProfile;
 }
 
-// 🟢 FIXED: Doctor now correctly extends User because doctorProfile shapes match
 export interface Doctor extends User {
   role: 'DOCTOR';
   doctorProfile: DoctorProfile; 
 }
 
+export interface Patient extends User {
+  role: 'PATIENT';
+  patientProfile: PatientProfile;
+}
+
 export interface AuthResponse {
   message: string;
   user: User;
+  profile?: DoctorProfile | PatientProfile;
   token?: string; 
 }
 
 export interface AuthContextType {
   user: User | null;
-  setUser: (user: User | null) => void;  loading: boolean;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  loading: boolean;
   login: (userData: User, refreshToken: string) => void;
   logout: () => Promise<void>;
 }
