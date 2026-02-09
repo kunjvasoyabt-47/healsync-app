@@ -23,7 +23,7 @@ export default async function DoctorDashboardPage() {
   } catch (error) {
     // 3. Handle fetching errors here
     console.error("Dashboard Auth Error:", error);
-    redirect("/login");
+
   }
 
   // 4. Perform security checks outside the try/catch

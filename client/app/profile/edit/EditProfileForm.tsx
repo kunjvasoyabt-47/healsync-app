@@ -23,16 +23,25 @@ export default function EditProfileForm() {
     formState: { errors },
   } = useForm<ProfileUpdateInput>({
     resolver: zodResolver(profileUpdateSchema),
+    // 🟢 Default values to prevent undefined inputs
+    defaultValues: {
+      name: "",
+      phone: "",
+      specialization: "",
+      fees: 500,
+      address: "",
+      bio: ""
+    }
   });
 
+  // 🟢 Synchronize form with Auth State
   useEffect(() => {
     if (user) {
-      const profile = user.role === "DOCTOR" ? user.doctorProfile : user.patientProfile;
       reset({
-        name: profile?.name || "",
+        name: user.name || "", 
         phone: user.patientProfile?.phone || "",
         specialization: user.doctorProfile?.specialization || "",
-        fees: user.doctorProfile?.fees || 0,
+        fees: user.doctorProfile?.fees || 500,
         address: user.doctorProfile?.address || "",
         bio: user.doctorProfile?.bio || "",
       });
@@ -43,12 +52,20 @@ export default function EditProfileForm() {
     setLoading(true);
     try {
       const res = await api.patch("/auth/update-profile", formData);
+      
       if (setUser && user) {
-        const key = user.role === "DOCTOR" ? "doctorProfile" : "patientProfile";
-        setUser({ ...user, [key]: res.data.profile });
+        // 🟢 Correctly merge the updated profile into the global user state
+        const roleKey = user.role === "DOCTOR" ? "doctorProfile" : "patientProfile";
+        setUser({ 
+          ...user, 
+          name: formData.name, // Update the root user name
+          [roleKey]: res.data.profile // Update the nested profile data
+        });
       }
+      
       alert("Profile updated successfully!");
-    } catch (err: AxiosError<{ message: string }> | unknown) {
+    } catch (err: unknown) {
+      console.error("Profile Update Error:", err);
       const errorMessage = err instanceof Error && "response" in err
           ? (err as AxiosError<{ message: string }>).response?.data?.message
           : "Failed to update profile.";
@@ -61,7 +78,7 @@ export default function EditProfileForm() {
   if (!user) return <div className="p-8 text-center text-text-muted">Loading user profile...</div>;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-in fade-in duration-500">
       <button
         onClick={() => router.back()}
         className="flex items-center gap-2 text-text-muted hover:text-primary transition-colors text-sm font-semibold mb-2 group"
@@ -71,8 +88,8 @@ export default function EditProfileForm() {
       </button>
 
       <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="bg-white p-8 rounded-3xl shadow-sm border border-border-main space-y-6"
+        onSubmit={handleSubmit(onSubmit, (errors) => console.log("❌ Validation failed:", errors))}
+        className="bg-bg-card p-8 rounded-3xl shadow-sm border border-border-main space-y-6"
       >
         <div className="flex items-center gap-3 border-b border-border-main pb-4">
           <div className="p-2 bg-primary/10 rounded-lg text-primary">
@@ -86,39 +103,33 @@ export default function EditProfileForm() {
           </div>
         </div>
 
-        {/* Display Name */}
+        {/* Name Field (Common for both) */}
         <div className="space-y-1">
-          <label className="text-xs font-bold text-text-muted uppercase">Display Name</label>
+          <label className="text-xs font-bold text-text-muted uppercase">Full Name</label>
           <div className="relative">
             <UserIcon className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
             <input
               {...register("name")}
+              placeholder="Enter your name"
               className={`w-full pl-10 pr-4 py-3 bg-bg-surface border rounded-xl outline-none transition-all ${
-                errors.name ? "border-red-500 ring-1 ring-red-500" : "border-border-main"
+                errors.name ? "border-danger ring-1 ring-danger/20" : "border-border-main focus:border-primary"
               }`}
             />
           </div>
-          {errors.name && <p className="text-red-500 text-[10px] font-bold mt-1 uppercase">{errors.name.message}</p>}
+          {errors.name && <p className="text-danger text-[10px] font-bold mt-1 uppercase">{errors.name.message}</p>}
         </div>
 
         {user.role === "DOCTOR" ? (
-          <div className="space-y-4">
+          <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Specialization */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-text-muted uppercase">Specialization</label>
                 <input
                   {...register("specialization")}
-                  className={`w-full p-3 bg-bg-surface border rounded-xl outline-none ${
-                    errors.specialization ? "border-red-500" : "border-border-main"
-                  }`}
+                  className="w-full p-3 bg-bg-surface border border-border-main rounded-xl focus:border-primary outline-none"
                 />
-                {errors.specialization && (
-                  <p className="text-red-500 text-[10px] font-bold uppercase">{errors.specialization.message}</p>
-                )}
               </div>
 
-              {/* Read Only Fees */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-text-muted uppercase">Consultation Fees (Fixed)</label>
                 <div className="relative">
@@ -126,7 +137,7 @@ export default function EditProfileForm() {
                    <input
                     {...register("fees")}
                     readOnly
-                    className="w-full pl-10 pr-4 py-3 bg-gray-100 border border-border-main rounded-xl outline-none text-gray-500 cursor-not-allowed"
+                    className="w-full pl-10 pr-4 py-3 bg-bg-surface border border-border-main rounded-xl text-text-muted cursor-not-allowed italic"
                   />
                 </div>
               </div>
@@ -138,12 +149,9 @@ export default function EditProfileForm() {
                 <MapPin className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
                 <input
                   {...register("address")}
-                  className={`w-full pl-10 pr-4 py-3 bg-bg-surface border rounded-xl outline-none ${
-                    errors.address ? "border-red-500" : "border-border-main"
-                  }`}
+                  className="w-full pl-10 pr-4 py-3 bg-bg-surface border border-border-main rounded-xl focus:border-primary outline-none"
                 />
               </div>
-              {errors.address && <p className="text-red-500 text-[10px] font-bold uppercase">{errors.address.message}</p>}
             </div>
 
             <div className="space-y-1">
@@ -151,27 +159,26 @@ export default function EditProfileForm() {
               <textarea
                 {...register("bio")}
                 rows={3}
-                className={`w-full p-3 bg-bg-surface border rounded-xl outline-none resize-none ${
-                  errors.bio ? "border-red-500" : "border-border-main"
-                }`}
+                className="w-full p-3 bg-bg-surface border border-border-main rounded-xl focus:border-primary outline-none resize-none"
               />
-              {errors.bio && <p className="text-red-500 text-[10px] font-bold uppercase">{errors.bio.message}</p>}
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          /* Patient Only Fields */
+          <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
             <div className="space-y-1">
               <label className="text-xs font-bold text-text-muted uppercase">Phone Number</label>
               <div className="relative">
                 <Phone className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
                 <input
                   {...register("phone")}
-                  className={`w-full pl-10 pr-4 py-3 bg-bg-surface border rounded-xl outline-none ${
-                    errors.phone ? "border-red-500" : "border-border-main"
+                  placeholder="e.g. 9876543210"
+                  className={`w-full pl-10 pr-4 py-3 bg-bg-surface border rounded-xl outline-none transition-all ${
+                    errors.phone ? "border-danger ring-1 ring-danger/20" : "border-border-main focus:border-primary"
                   }`}
                 />
               </div>
-              {errors.phone && <p className="text-red-500 text-[10px] font-bold uppercase">{errors.phone.message}</p>}
+              {errors.phone && <p className="text-danger text-[10px] font-bold uppercase mt-1">{errors.phone.message}</p>}
             </div>
           </div>
         )}

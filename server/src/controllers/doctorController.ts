@@ -72,3 +72,24 @@ export const updateStatus = async (req: any, res: any) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+export const getAnalytics = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized: Missing credentials" });
+    }
+
+    const analytics = await doctorService.getDoctorAnalytics(userId);
+
+    return res.status(200).json({
+      success: true,
+      data: analytics
+    });
+  } catch (error: any) {
+    console.error("Analytics Controller Error:", error);
+    return res.status(500).json({ 
+      message: error.message || "Internal server error while fetching analytics" 
+    });
+  }
+};
