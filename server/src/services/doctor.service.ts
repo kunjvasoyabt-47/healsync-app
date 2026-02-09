@@ -58,22 +58,19 @@ export const doctorService = {
 
     return doctor;
   },
+ // Add or update this function inside the doctorService object
 getDoctorAppointmentsService: async (profileId: string) => {
-  console.log("=== SERVICE CALLED ===");
-  console.log("Looking for doctor with profileId:", profileId);
-  
+  // Check if doctor profile exists
   const doctorProfile = await prisma.doctorProfile.findUnique({
     where: { id: profileId },
   });
 
-  console.log("Database returned:", doctorProfile);
-
   if (!doctorProfile) {
-    console.log("RETURNING NULL - DOCTOR NOT FOUND");
-    return null;
+    return null; // Return null if not found
   }
 
-  const appointments = await prisma.appointment.findMany({
+  // Fetch appointments
+  return await prisma.appointment.findMany({
     where: { doctorId: profileId },
     include: {
       patient: {
@@ -84,11 +81,9 @@ getDoctorAppointmentsService: async (profileId: string) => {
         },
       },
     },
+    // Top-level fields like 'reason' and 'reportUrl' are included by default
     orderBy: { date: 'asc' },
   });
-
-  console.log("Found appointments count:", appointments.length);
-  return appointments;
 },
   /**
    * Updates an appointment status

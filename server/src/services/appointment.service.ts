@@ -3,6 +3,7 @@
   import { ApptStatus } from "@prisma/client";
   import { stripeService } from "./stripe.service";
   import { sendEmail } from "../utils/email";
+
   export const createAppointmentService = async (
     data: {
       doctorUserId: string;
@@ -151,8 +152,6 @@
 
     return result;
   };
-
-  // backend/src/services/appointment.service.ts
 
 /**
  * Automatically rejects appointments where the 3-hour payment window has expired.
