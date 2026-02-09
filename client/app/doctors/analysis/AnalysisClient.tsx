@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from "recharts";
-import { Users, TrendingUp, CalendarCheck } from "lucide-react";
+import { Users, TrendingUp, CalendarCheck, Activity } from "lucide-react";
 
 // Using your @theme variables for consistency
 const STATUS_COLORS: Record<string, string> = {
@@ -54,9 +54,15 @@ export default function AnalysisClient({ initialData }: { initialData: Analytics
     return paidCount * 500;
   }, [initialData]);
 
+  // 🟢 NEW: Calculate Average Revenue Per Day based on active days
+  const avgRevenuePerDay = useMemo(() => {
+    const activeDaysCount = Object.keys(initialData.dayWise).length;
+    return activeDaysCount > 0 ? Math.round(totalRevenue / activeDaysCount) : 0;
+  }, [initialData.dayWise, totalRevenue]);
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* KPI Cards using your Tailwind Theme */}
+      {/* KPI Cards Grid - Updated to 3 columns */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-bg-surface p-6 rounded-3xl border border-border-main shadow-sm flex items-center gap-4">
           <div className="p-3 bg-primary/10 rounded-2xl text-primary">
@@ -76,6 +82,19 @@ export default function AnalysisClient({ initialData }: { initialData: Analytics
             <p className="text-xs font-bold text-text-muted uppercase tracking-tight">Total Revenue</p>
             <h2 className="text-2xl font-black text-text-main">
               ₹{totalRevenue.toLocaleString()}
+            </h2>
+          </div>
+        </div>
+
+        {/* 🟢 NEW: Average Revenue Card with Vibrant Red Accent */}
+        <div className="bg-bg-surface p-6 rounded-3xl border border-border-main shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-red-500/10 rounded-2xl text-[#ef0d0d]">
+            <Activity size={24} />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-text-muted uppercase tracking-tight">Avg. Revenue / Day</p>
+            <h2 className="text-2xl font-black text-text-main">
+              ₹{avgRevenuePerDay.toLocaleString()}
             </h2>
           </div>
         </div>

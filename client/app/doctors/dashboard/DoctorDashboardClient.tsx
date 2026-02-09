@@ -127,6 +127,25 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
       setLoading(false);
     }
   };
+  const handleLogout = async () => {
+  try {
+      const refreshToken = localStorage.getItem("refreshToken");
+
+      // 1. Hit your logout controller
+      await api.post("/auth/logout", { refreshToken });
+
+      // 2. Clear local storage so interceptor doesn't try to refresh
+      localStorage.removeItem("refreshToken");
+
+      // 3. Force redirect to login page
+      window.location.href = "/login";
+    } catch (err) {
+      console.error("Logout error:", err);
+      // Fallback: Clear local storage and redirect anyway if the API fails
+      localStorage.removeItem("refreshToken");
+      window.location.href = "/login";
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -159,6 +178,12 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
             >
               + Create New Slot
             </button>
+            <button 
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-6 py-2.5 bg-[#FF2D10] hover:bg-[#e6293f] text-white font-bold rounded-2xl transition-all active:scale-95"
+            >
+            Logout
+          </button>
           </div>
         </div>
 
@@ -188,7 +213,7 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
                   <thead>
                     <tr className="text-xs font-bold text-text-muted uppercase tracking-wider border-b border-border-main">
                       <th className="pb-4">Patient</th>
-                      <th className="pb-4">Date & Time</th>
+                      <th className="pb-4">Time</th>
                       <th className="pb-4">Reason</th> 
                       <th className="pb-4">Status</th>
                       <th className="pb-4 text-center">Report</th> 
