@@ -1,23 +1,24 @@
-import { User } from './auth.interface';
+import { User, DoctorProfile as BaseDoctorProfile } from './auth.interface';
 import { Availability } from './availablility.interface';
 
-export interface DoctorProfile {
-  name: string;
-  specialization: string;
+/**
+ * 🟢 We extend the BaseDoctorProfile to add UI-specific fields 
+ * like availability, while keeping the required 'id' from Auth.
+ */
+export interface DoctorProfile extends BaseDoctorProfile {
   city: string;
-  fees: number;
   // Use 'number | null' because your DB returns null for new profiles
   experience: number | null; 
-  // Use 'string | null' to match your Postman output
-  bio: string | null;
-  // Optional if not always returned in the 'getAll' list
-  address?: string; 
+  // qualifications is already in base as optional, but we can refine it here
   qualifications?: string;
-
   availability?: Availability[]; 
 }
 
+/**
+ *  This now correctly extends User because DoctorProfile 
+ * inherited the 'id' property from auth.interface.
+ */
 export interface Doctor extends User {
-  // Ensure this matches the nesting in your JSON
+  role: 'DOCTOR';
   doctorProfile: DoctorProfile; 
 }
