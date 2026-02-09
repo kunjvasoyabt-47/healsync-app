@@ -41,20 +41,18 @@ export const getMyAppointments = async (req: any, res: any) => {
     return res.status(401).json({ error: "Unauthorized: No profileId in token" });
   }
 
-  console.log("Calling service with profileId:", profileId);
-  
+  // Call the service function we just updated
   const appointments = await doctorService.getDoctorAppointmentsService(profileId);
 
-  console.log("Service returned:", appointments);
-
   if (appointments === null) {
-    return res.status(404).json({ error: "Doctor not found" });
+    return res.status(404).json({ error: "Doctor profile not found" });
   }
 
+  // Standardize the response structure
   return res.status(200).json({
     success: true,
     count: appointments.length,
-    data: appointments
+    data: appointments 
   });
 };
 

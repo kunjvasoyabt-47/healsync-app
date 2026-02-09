@@ -5,8 +5,14 @@ import api from "../../../src/lib/axios";
 import { Appointment } from "@/src/interfaces/appointment.interface";
 import Link from "next/dist/client/link";
 import AnalysisClient from "../analysis/AnalysisClient";
+import { FileText } from "lucide-react"; // 🟢 Added for Report Icon
 
-// 🟢 Define Analytics Interface to avoid 'any'
+// 🟢 Extended Interface to include Backend fields
+interface AppointmentWithExtras extends Appointment {
+  reason?: string;
+  reportUrl?: string;
+}
+
 interface AnalyticsData {
   totalAppointments: number;
   statusDistribution: Array<{
@@ -21,10 +27,9 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [appointments, setAppointments] = useState<AppointmentWithExtras[]>([]);
   const [fetching, setFetching] = useState(true);
 
-  // 🟢 State for Analytics
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [fetchingAnalytics, setFetchingAnalytics] = useState(false);
 
@@ -33,6 +38,7 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
     const fetchAppointments = async () => {
       try {
         const res = await api.get("/doctors/my-appointments");
+        // 🟢 Backend now sends { success: true, data: [...] }
         setAppointments(res.data.data || []);
       } catch (err) {
         console.error("Failed to fetch appointments", err);
@@ -43,7 +49,7 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
     fetchAppointments();
   }, []);
 
-  // 🟢 Fetch Analytics when tab switches
+  // Fetch Analytics when tab switches
   useEffect(() => {
     const fetchAnalytics = async () => {
       if (activeTab === "analysis" && !analytics) {
@@ -94,10 +100,7 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
 
     } catch (err: unknown) {
       console.error("Status Update Error:", err);
-      const errorMessage = err instanceof Error && 'response' in err 
-        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message 
-        : "Failed to update status";
-      alert(errorMessage || "Failed to update status");
+      alert("Failed to update status");
     } finally {
       setLoading(false);
     }
@@ -119,10 +122,7 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
       setShowModal(false);
     } catch (err: unknown) {
       console.error("Create slot error:", err);
-      const errorMessage = err instanceof Error && 'response' in err 
-        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message 
-        : "Failed to create slot";
-      alert(errorMessage || "Failed to create slot");
+      alert("Failed to create slot");
     } finally {
       setLoading(false);
     }
@@ -189,7 +189,9 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
                     <tr className="text-xs font-bold text-text-muted uppercase tracking-wider border-b border-border-main">
                       <th className="pb-4">Patient</th>
                       <th className="pb-4">Date & Time</th>
+                      <th className="pb-4">Reason</th> 
                       <th className="pb-4">Status</th>
+                      <th className="pb-4 text-center">Report</th> 
                       <th className="pb-4 text-right">Actions</th>
                     </tr>
                   </thead>
@@ -200,10 +202,28 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
                         <td className="py-4 text-text-muted">
                           {new Date(appt.date).toLocaleDateString()} at {appt.timeSlot}
                         </td>
+                        {/* Render Meeting Reason */}
+                        <td className="py-4 text-text-muted truncate max-w-[150px]">
+                          {appt.reason || "General Consultation"}
+                        </td>
                         <td className="py-4">
                           <span className={`px-3 py-1 rounded-full border text-[10px] font-bold uppercase ${getStatusColor(appt.status)}`}>
                             {appt.status}
                           </span>
+                        </td>
+                        {/* Render Report Action Button */}
+                        <td className="py-4 text-center">
+                          {appt.reportUrl ? (
+                            <button 
+                              onClick={() => window.open(appt.reportUrl, '_blank')}
+                              className="text-primary hover:bg-primary/10 p-2 rounded-lg transition-all"
+                              title="View Patient Report"
+                            >
+                              <FileText size={18} />
+                            </button>
+                          ) : (
+                            <span className="text-gray-300">-</span>
+                          )}
                         </td>
                         <td className="py-4 text-right">
                           {appt.status === "PENDING" && (
@@ -235,7 +255,6 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
               <p className="text-text-muted">No appointments found.</p>
             )
           ) : (
-            // 🟢 Render Analysis Content
             fetchingAnalytics ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
@@ -252,7 +271,7 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-bg-card w-full max-w-md rounded-3xl p-8 border border-border-main shadow-md">
+          <div className="bg-bg-card w-full max-w-md rounded-3xl p-8 border border-border-main shadow-sm">
             <h2 className="text-xl font-bold text-text-main mb-6">Set Availability</h2>
             <form onSubmit={handleCreateSlot} className="space-y-4">
               <div>
