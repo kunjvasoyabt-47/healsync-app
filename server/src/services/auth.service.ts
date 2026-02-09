@@ -90,7 +90,7 @@ export const authService = {
         const accessToken = jwt.sign(
             { userId: user.id, role: user.role, profileId, version: user.tokenVersion },
             process.env.JWT_SECRET!,
-            { expiresIn: "15m" }
+            { expiresIn: "60m" }
         );
 
         const refreshToken = uuidv4();
@@ -131,7 +131,7 @@ export const authService = {
     return jwt.sign(
         { userId: user.id, role: user.role, profileId, version: user.tokenVersion },
         process.env.JWT_SECRET!,
-        { expiresIn: "15m" }
+        { expiresIn: "60m" }
     );
     } ,
 
