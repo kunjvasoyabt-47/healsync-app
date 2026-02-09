@@ -1,11 +1,8 @@
 "use client";
 import { useAuth } from "@/src/context/AuthContext";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-
 
 export const Navbar = () => {
-  const router = useRouter();
   const {logout} = useAuth(); 
   
   const handleLogout = async () => {
@@ -23,6 +20,9 @@ export const Navbar = () => {
         </Link>
         <Link href="/appointments" className="hover:text-primary transition-colors">
           My Appointments
+        </Link>
+        <Link href="/profile/edit" className="hover:text-primary transition-colors flex items-center gap-2">
+           Edit Profile
         </Link>
       <button 
   onClick={handleLogout}

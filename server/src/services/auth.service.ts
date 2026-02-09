@@ -109,24 +109,31 @@ export const authService = {
      * Handles Access Token rotation via Refresh Token
      */
     refreshSession: async (token: string) => {
-        const savedToken = await prisma.refreshToken.findUnique({
-            where: { token: token.trim() },
-            include: { user: { include: { doctorProfile: true, patientProfile: true } } }
-        });
+    const savedToken = await prisma.refreshToken.findUnique({
+        where: { token: token.trim() },
+        include: { user: { include: { doctorProfile: true, patientProfile: true } } }
+    });
 
-        if (!savedToken || savedToken.revoked || savedToken.expiresAt < new Date()) {
-            throw new Error("Invalid or expired session");
-        }
+    // 🟢 Log if token is not found to debug the 401
+    if (!savedToken) {
+        console.error("Refresh Service: Token not found in DB");
+        throw new Error("Invalid or expired session");
+    }
 
-        const user = savedToken.user;
-        const profileId = user.role === "DOCTOR" ? user.doctorProfile?.id : user.patientProfile?.id;
+    if (savedToken.revoked || savedToken.expiresAt < new Date()) {
+        throw new Error("Invalid or expired session");
+    }
 
-        return jwt.sign(
-            { userId: user.id, role: user.role, profileId, version: user.tokenVersion },
-            process.env.JWT_SECRET!,
-            { expiresIn: "15m" }
-        );
-    },
+    const user = savedToken.user;
+    const profileId = user.role === "DOCTOR" ? user.doctorProfile?.id : user.patientProfile?.id;
+
+    // 🟢 Ensure the payload matches your Login JWT exactly
+    return jwt.sign(
+        { userId: user.id, role: user.role, profileId, version: user.tokenVersion },
+        process.env.JWT_SECRET!,
+        { expiresIn: "15m" }
+    );
+    } ,
 
     /**
      * Revokes a session in the database
@@ -278,4 +285,27 @@ export const authService = {
 
     return user;
   },
+  updatePatientProfile: async (userId: string, data: any) => {
+        return await prisma.patientProfile.update({
+            where: { userId },
+            data: {
+                name: data.name,
+                phone: data.phone,
+            }
+        });
+    },
+
+    updateDoctorProfile: async (userId: string, data: any) => {
+        return await prisma.doctorProfile.update({
+            where: { userId },
+            data: {
+                name: data.name,
+                specialization: data.specialization,
+                bio: data.bio,
+                fees: data.fees ? Number(data.fees) : undefined,
+                experience: data.experience ? Number(data.experience) : undefined,
+                address: data.clinicAddress || data.clinicAddress,
+            }
+        });
+    }
 };
