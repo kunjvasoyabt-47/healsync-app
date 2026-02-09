@@ -26,6 +26,7 @@ export const login = async (req: Request, res: Response) => {
     res.cookie("accessToken", result.accessToken, {
         httpOnly: true,
         //secure: process.env.NODE_ENV === "production",
+        path: "/", // 🟢 Critical: Ensures cookie is available to all routes
         sameSite: "none",
         secure: true,
         maxAge: 15 * 60 * 1000 // 15 minutes
@@ -152,24 +153,62 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
 export const refresh = async (req: Request, res: Response) => {
   try {
     const { refreshToken } = req.body;
-    if (!refreshToken) return res.status(401).json({ error: "No refresh token" });
+    console.log("DEBUG: Attempting refresh with token:", refreshToken); // 🟢 Add this log
 
-    // 1. Verify the refresh token in your service
+    if (!refreshToken) return res.status(401).json({ error: "No refresh token provided" });
+
     const newAccessToken = await authService.refreshSession(refreshToken); 
 
-    // 2. Set the NEW Access Token in the cookie
     res.cookie("accessToken", newAccessToken, {
       httpOnly: true,
-      //secure: process.env.NODE_ENV === "production",
-      secure: true,
-      sameSite: "none", // 'lax' is best for local cross-port development
-      path: "/",       // Ensures the cookie is sent to all API routes
-      maxAge: 15 * 60 * 1000 // 15 minutes
+      secure: true, // Required for sameSite: "none"
+      sameSite: "none", 
+      path: "/", // 🟢 Critical: Ensures cookie is available to all routes
+      maxAge: 15 * 60 * 1000 
     });
 
-    return res.status(200).json({ message: "Token refreshed successfully" });
-  } catch (err) {
-    // If refresh token is expired/revoked, force a logout
-    return res.status(401).json({ error: "Invalid session" });
+    return res.status(200).json({ message: "Token refreshed" });
+  } catch (err: any) {
+    console.error("Refresh Error:", err.message);
+    return res.status(401).json({ error: "Invalid or expired session" });
+  }
+};
+export const updateProfile = async (req: Request, res: Response) => {
+  try {
+    // 1. Extract identity from the 'verifyToken' middleware
+    const userId = (req as any).user?.userId;
+    const role = (req as any).user?.role;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized: No user found" });
+    }
+
+    let updatedProfile;
+
+    // 2. Branch logic based on user role
+    if (role === "DOCTOR") {
+      updatedProfile = await authService.updateDoctorProfile(userId, req.body);
+    } else if (role === "PATIENT") {
+      updatedProfile = await authService.updatePatientProfile(userId, req.body);
+    } else {
+      return res.status(400).json({ message: "Invalid user role" });
+    }
+
+    // 3. Success Response
+    return res.status(200).json({
+      message: "Profile updated successfully",
+      profile: updatedProfile,
+    });
+    
+  } catch (error: any) {
+    // Handle Prisma errors (like record not found)
+    if (error.code === "P2025") {
+      return res.status(404).json({ message: "Profile record not found" });
+    }
+
+    console.error("Update Profile Error:", error);
+    return res.status(500).json({ 
+      message: "Internal server error during profile update" 
+    });
   }
 };

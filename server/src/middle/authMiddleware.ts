@@ -15,7 +15,7 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction) => 
   console.log("Extracted token:", token ? "Token found" : "NO TOKEN");
 
   if (!token) {
-    console.log("❌ No token - returning 401");
+    console.log("No token - returning 401");
     return res.status(401).json({ message: "No token provided" });
   }
 

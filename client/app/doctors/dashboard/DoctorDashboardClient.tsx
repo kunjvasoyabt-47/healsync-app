@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import api from "../../../src/lib/axios";
 import { Appointment } from "@/src/interfaces/appointment.interface";
+import Link from "next/dist/client/link";
 
 export default function DoctorDashboardClient({ doctorId }: { doctorId: string }) {
   const [activeTab, setActiveTab] = useState<"appointments" | "analysis">("appointments");
@@ -111,14 +112,26 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
     <div className="min-h-screen bg-bg-surface p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold text-text-main">Doctor Dashboard</h1>
-          <button 
-            onClick={() => setShowModal(true)}
-            className="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-xl font-semibold transition-all shadow-md"
-          >
-            + Create New Slot
-          </button>
-        </div>
+  {/* Left Side */}
+  <h1 className="text-2xl font-bold text-text-main">Doctor Dashboard</h1>
+  
+  {/* Right Side: Grouped Buttons */}
+  <div className="flex items-center gap-4">
+    <Link 
+      href="/profile/edit" 
+      className="border border-border-main hover:bg-gray-50 px-6 py-2 rounded-xl font-semibold transition-all"
+    >
+      Edit Profile
+    </Link>
+
+    <button 
+      onClick={() => setShowModal(true)}
+      className="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-xl font-semibold transition-all shadow-md"
+    >
+      + Create New Slot
+    </button>
+    </div>
+  </div>
 
         <div className="flex gap-4 border-b border-border-main mb-6">
           {["appointments", "analysis"].map((tab) => (

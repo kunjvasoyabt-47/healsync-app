@@ -1,31 +1,31 @@
+import dotenv from "dotenv";
+dotenv.config(); // 🟢 Ensure this is at the absolute top
+
+import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import dotenv from "dotenv";
-dotenv.config();
-import express from "express";
-import cron from "node-cron"; // 🟢 Added import
-import { prisma } from "./config/db"; // 🟢 Added import for cleanup logic
+import cron from "node-cron";
 import authRoutes from "./routes/authRoutes";
 import doctorRoutes from "./routes/doctorRoutes";
 import patientRoutes from "./routes/patientRoutes";
 import availabilityRoutes from "./routes/availabilityRoutes";
 import appointmentRoutes from "./routes/appointmentRoute";
 import { handleStripeWebhook } from "./controllers/payment.controller";
-import { runAppointmentCleanup } from "./services/appointment.service"; // 🟢 Added import for cleanup function
-
+import { runAppointmentCleanup } from "./services/appointment.service";
 import { AUTH_ROUTES, AVAILABILITY_ROUTES, DOCTOR_ROUTES, PATIENT_ROUTES, APPOINTMENT_ROUTES } from "./config/routes";
-
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// 1. Stripe Webhook (MUST be before express.json)
+// 🟢 1. Stripe Webhook (MUST be before ANY app.use)
+// Placing it here guarantees express.json() never touches it.
 app.post(
   "/api/payments/webhook", 
   express.raw({ type: "application/json" }), 
   handleStripeWebhook
 );
 
+// 2. Global Middleware
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
@@ -35,7 +35,7 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// Routes
+// 3. Routes
 app.use(AUTH_ROUTES.BASE, authRoutes);
 app.use(DOCTOR_ROUTES.BASE, doctorRoutes);
 app.use(PATIENT_ROUTES.BASE, patientRoutes);
@@ -46,7 +46,7 @@ app.get("/", (req, res) => {
   res.send("HealSync Backend is Running!");
 });
 
-// 🟢 Improved Cron with "Concurrency Guard"
+// 4. Cron Job (The Janitor)
 let isCleanupProcessing = false;
 
 cron.schedule("*/15 * * * *", async () => {
@@ -54,13 +54,15 @@ cron.schedule("*/15 * * * *", async () => {
   
   isCleanupProcessing = true;
   try {
+    console.log("🧹 Starting background cleanup...");
     await runAppointmentCleanup();
   } catch (err) {
-    // Error is handled inside the service, but caught here to reset flag
+    console.error("❌ Cleanup failed:", err);
   } finally {
     isCleanupProcessing = false;
   }
 });
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

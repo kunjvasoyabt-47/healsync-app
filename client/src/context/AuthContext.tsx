@@ -1,11 +1,12 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import api from "../lib/axios";
 import { User, AuthContextType } from "../interfaces/auth.interface";
 import { PAGE_ROUTES, AUTH_ROUTES } from '../routes/routes';
 import { AxiosError } from 'axios';
+
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -13,7 +14,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const pathname = usePathname();
   const hasChecked = useRef(false);
 
   const checkAuth = useCallback(async () => {
@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, setUser, loading, login, logout }}>
       {!loading ? children : (
         <div className="min-h-screen flex items-center justify-center bg-white">
           <div className="flex flex-col items-center gap-4">
