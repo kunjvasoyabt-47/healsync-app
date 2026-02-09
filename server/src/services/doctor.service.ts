@@ -98,5 +98,42 @@ getDoctorAppointmentsService: async (profileId: string) => {
       where: { id: appointmentId },
       data: { status },
     });
+  },
+  getDoctorAnalytics: async (userId: string) => {
+    // Fetch the doctor profile associated with the user
+    const doctor = await prisma.doctorProfile.findUnique({
+      where: { userId },
+      select: { id: true }
+    });
+
+    if (!doctor) throw new Error("Doctor profile not found");
+
+    // Execute queries in parallel for efficiency
+    const [statusGroups, allAppointments] = await Promise.all([
+      // 1. Data for Status Donut Chart
+      prisma.appointment.groupBy({
+        by: ['status'],
+        where: { doctorId: doctor.id },
+        _count: { id: true }
+      }),
+      // 2. Data for Weekly Bar Chart
+      prisma.appointment.findMany({
+        where: { doctorId: doctor.id },
+        select: { createdAt: true }
+      })
+    ]);
+
+    // Format Day-wise data (e.g., { "Monday": 5, "Tuesday": 3 })
+    const dayWise = allAppointments.reduce((acc: Record<string, number>, curr) => {
+      const day = new Date(curr.createdAt).toLocaleDateString('en-US', { weekday: 'long' });
+      acc[day] = (acc[day] || 0) + 1;
+      return acc;
+    }, {});
+
+    return {
+      totalAppointments: allAppointments.length,
+      statusDistribution: statusGroups,
+      dayWise
+    };
   }
 };

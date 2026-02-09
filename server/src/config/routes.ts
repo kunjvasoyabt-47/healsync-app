@@ -20,6 +20,7 @@ export const DOCTOR_ROUTES = {
   GET_BY_ID: "/:id",
   GET_APPOINTMENTS: "/my-appointments",
   UPDATE_STATUS: "/update-status",
+  ANAYTICS: "/analytics",
 };
 
 // Patient routes

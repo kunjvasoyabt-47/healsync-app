@@ -25,16 +25,14 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as CustomRequestConfig;
 
-    // 🟢 CHANGE: Use endsWith or a more specific check to ensure /auth/me isn't blocked
-    if (originalRequest.url?.includes('/auth/refresh')) {
+    if (originalRequest.url?.includes('/auth/refresh-token')) {
       localStorage.removeItem("refreshToken");
       return Promise.reject(error);
     }
 
-  if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
-          // 🟢 CHANGE: Resolve by re-calling 'api' with the original config
           failedQueue.push({ 
             resolve: () => resolve(api(originalRequest)), 
             reject: (err) => reject(err) 
@@ -49,19 +47,24 @@ api.interceptors.response.use(
         const refreshToken = localStorage.getItem("refreshToken");
         if (!refreshToken) throw new Error("No refresh token");
 
-        await api.post(
-          `auth/refresh-token`,
-          { refreshToken }
-          // withCredentials is already on the base 'api' instance, so it's inherited
-        );
+        // 🟢 Execute Refresh
+        await api.post(`auth/refresh-token`, { refreshToken });
 
+        // 🟢 FIX: After success, the new cookie is set. 
+        // Retrying the failed queue now will work with the new cookie.
         processQueue(null); 
-        return api(originalRequest); // Retries the current failed request
-      }catch (refreshError) {
+        return api(originalRequest); 
+
+      } catch (refreshError) {
         processQueue(refreshError, null);
         localStorage.removeItem("refreshToken");
+
+        // 🟢 FIX: Only redirect if the refresh actually fails
         if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
-          window.location.href = "/login";
+           // Small delay helps avoid infinite redirect loops during state transitions
+           setTimeout(() => {
+             window.location.href = "/login";
+           }, 100);
         }
         return Promise.reject(refreshError);
       } finally {

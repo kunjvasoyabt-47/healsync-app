@@ -38,17 +38,19 @@ export const registerSchema = z
 
 export const profileUpdateSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
+  
   phone: z
-  .string()
-  // Change {1,14} to {9,14} to require at least 10 digits (including the first digit)
-  .regex(/^\+?[1-9]\d{9,14}$/, "Phone number must be at least 10 digits")
-  .optional()
-  .or(z.literal("")),
-  specialization: z.string().min(2, "Specialization is required").optional(),
-  // 🟢 Fees are read-only, so we make validation very loose or optional
+    .string()
+    .regex(/^\+?[1-9]\d{9,14}$/, "Phone number must be at least 10 digits")
+    .optional()
+    .or(z.literal("")),
+
+  specialization: z.string().optional().or(z.literal("")),
   fees: z.any().optional(), 
-  address: z.string().min(5, "Address is required").optional(),
-  bio: z.string().max(500, "Bio is too long").optional(),
+
+  // We use .optional().or(z.literal("")) to allow patients to bypass this
+  address: z.string().optional().or(z.literal("")),
+  bio: z.string().max(500, "Bio is too long").optional().or(z.literal("")),
 });
 
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;

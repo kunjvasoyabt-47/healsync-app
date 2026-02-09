@@ -4,6 +4,17 @@ import { useState, useEffect } from "react";
 import api from "../../../src/lib/axios";
 import { Appointment } from "@/src/interfaces/appointment.interface";
 import Link from "next/dist/client/link";
+import AnalysisClient from "../analysis/AnalysisClient";
+
+// 🟢 Define Analytics Interface to avoid 'any'
+interface AnalyticsData {
+  totalAppointments: number;
+  statusDistribution: Array<{
+    status: string;
+    _count: { id: number };
+  }>;
+  dayWise: Record<string, number>;
+}
 
 export default function DoctorDashboardClient({ doctorId }: { doctorId: string }) {
   const [activeTab, setActiveTab] = useState<"appointments" | "analysis">("appointments");
@@ -13,6 +24,11 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [fetching, setFetching] = useState(true);
 
+  // 🟢 State for Analytics
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [fetchingAnalytics, setFetchingAnalytics] = useState(false);
+
+  // Fetch Appointments
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
@@ -27,11 +43,27 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
     fetchAppointments();
   }, []);
 
-  // --- REFINED HANDLE STATUS UPDATE ---
+  // 🟢 Fetch Analytics when tab switches
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      if (activeTab === "analysis" && !analytics) {
+        setFetchingAnalytics(true);
+        try {
+          const res = await api.get("/doctors/analytics");
+          setAnalytics(res.data.data);
+        } catch (err) {
+          console.error("Failed to fetch analytics", err);
+        } finally {
+          setFetchingAnalytics(false);
+        }
+      }
+    };
+    fetchAnalytics();
+  }, [activeTab, analytics]);
+
   const handleUpdateStatus = async (appointmentId: string, newStatus: string) => {
     setLoading(true); 
     try {
-      // For approvals, we use the specific endpoint that handles Stripe and Email
       const endpoint = newStatus === "APPROVED_UNPAID" 
         ? `/appointments/approve/${appointmentId}` 
         : "/doctors/update-status";
@@ -40,7 +72,6 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
         ? {} 
         : { appointmentId, status: newStatus };
 
-      // Use POST for the specific approve endpoint, PATCH for general status updates
       if (newStatus === "APPROVED_UNPAID") {
         await api.post(endpoint);
       } else {
@@ -112,26 +143,24 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
     <div className="min-h-screen bg-bg-surface p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-  {/* Left Side */}
-  <h1 className="text-2xl font-bold text-text-main">Doctor Dashboard</h1>
-  
-  {/* Right Side: Grouped Buttons */}
-  <div className="flex items-center gap-4">
-    <Link 
-      href="/profile/edit" 
-      className="border border-border-main hover:bg-gray-50 px-6 py-2 rounded-xl font-semibold transition-all"
-    >
-      Edit Profile
-    </Link>
+          <h1 className="text-2xl font-bold text-text-main">Doctor Dashboard</h1>
+          
+          <div className="flex items-center gap-4">
+            <Link 
+              href="/profile/edit" 
+              className="border border-border-main hover:bg-gray-50 px-6 py-2 rounded-xl font-semibold transition-all"
+            >
+              Edit Profile
+            </Link>
 
-    <button 
-      onClick={() => setShowModal(true)}
-      className="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-xl font-semibold transition-all shadow-md"
-    >
-      + Create New Slot
-    </button>
-    </div>
-  </div>
+            <button 
+              onClick={() => setShowModal(true)}
+              className="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-xl font-semibold transition-all shadow-md"
+            >
+              + Create New Slot
+            </button>
+          </div>
+        </div>
 
         <div className="flex gap-4 border-b border-border-main mb-6">
           {["appointments", "analysis"].map((tab) => (
@@ -206,7 +235,17 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
               <p className="text-text-muted">No appointments found.</p>
             )
           ) : (
-            <p className="text-text-muted">Analysis charts will appear here.</p>
+            // 🟢 Render Analysis Content
+            fetchingAnalytics ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+                <p className="text-text-muted">Calculating clinical analytics...</p>
+              </div>
+            ) : analytics ? (
+              <AnalysisClient initialData={analytics} />
+            ) : (
+              <p className="text-text-muted">Failed to load analytics data.</p>
+            )
           )}
         </div>
       </div>

@@ -1,5 +1,21 @@
 export type UserRole = 'PATIENT' | 'DOCTOR';
 
+// 🟢 Define specific profile interfaces to ensure consistency
+export interface DoctorProfile {
+  id: string;
+  name: string;
+  specialization: string;
+  fees: number;
+  address?: string;
+  bio?: string;
+}
+
+export interface PatientProfile {
+  id: string;
+  name: string;
+  phone?: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -7,32 +23,26 @@ export interface User {
   role: UserRole;
   createdAt?: string;
   updatedAt?: string;
-  doctorProfile?: {
-    id: string;
-    name: string;
-    specialization: string;
-    fees: number;
-    address?: string;
-    bio?: string;
-  };
-  patientProfile?: {
-    id: string;
-    name: string;
-    phone?: string;
-  };
+  // Use the interfaces defined above
+  doctorProfile?: DoctorProfile;
+  patientProfile?: PatientProfile;
+}
+
+// 🟢 FIXED: Doctor now correctly extends User because doctorProfile shapes match
+export interface Doctor extends User {
+  role: 'DOCTOR';
+  doctorProfile: DoctorProfile; 
 }
 
 export interface AuthResponse {
   message: string;
   user: User;
-  token?: string; // If you decide to use Bearer tokens later
+  token?: string; 
 }
 
 export interface AuthContextType {
   user: User | null;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
-  loading: boolean;
-  // Update this line to match your 3-argument function
+  setUser: (user: User | null) => void;  loading: boolean;
   login: (userData: User, refreshToken: string) => void;
   logout: () => Promise<void>;
 }
