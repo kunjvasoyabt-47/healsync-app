@@ -9,6 +9,7 @@ import { DoctorFilters } from "../../src/components/ui/DoctorFilters";
 import api from "../../src/lib/axios";
 import { Doctor } from "../../src/interfaces/doctor.interface";
 import { PAGE_ROUTES, DOCTOR_ROUTES } from "../../src/routes/routes";
+import { usePathname } from "next/navigation"; 
 
 const SPECIALTIES = ["Dentist", "Cardiologist", "Pediatrician", "Neurologist", "Dermatologist", "Gynecologist","Pethology", "ENT Specialist","Diagnostician"];
 const CITIES = ["Ahmedabad", "Rajkot", "Surat"];
@@ -25,13 +26,21 @@ export default function AllDoctorsClient({ initialDoctors }: { initialDoctors: D
 
   // 1. Ref to track the initial mount
   const isInitialMount = useRef(true);
+    const pathname = usePathname(); // ← ADD THIS
+
 
   // 2. Security Check
+  // Security Check - ONLY for /doctors page, NOT /doctors/dashboard
   useEffect(() => {
+    // ← ADD THIS CHECK
+    if (pathname.includes('/dashboard')) {
+      return; // Don't block doctors going to their dashboard
+    }
+    
     if (!authLoading && (!user || user.role !== "PATIENT")) {
       router.push(PAGE_ROUTES.LOGIN);
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, router, pathname]); 
 
   // 3. Interactive Filtering & Reset Logic
   useEffect(() => {
