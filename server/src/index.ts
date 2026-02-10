@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-dotenv.config(); // 🟢 Ensure this is at the absolute top
+dotenv.config(); // 🟢 Absolute top
 
 import express from "express";
 import cors from "cors";
@@ -17,8 +17,10 @@ import { AUTH_ROUTES, AVAILABILITY_ROUTES, DOCTOR_ROUTES, PATIENT_ROUTES, APPOIN
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// 🟢 1. Stripe Webhook (MUST be before ANY app.use)
-// Placing it here guarantees express.json() never touches it.
+// 🟢 NEW: Trust Proxy (Required for Render to allow secure cookies)
+app.set("trust proxy", 1); 
+
+// 🟢 1. Stripe Webhook (MUST be before ANY app.use(express.json()))
 app.post(
   "/api/payments/webhook", 
   express.raw({ type: "application/json" }), 
@@ -28,28 +30,26 @@ app.post(
 // 2. Global Middleware
 app.use(express.json());
 app.use(cookieParser());
+
 const allowedOrigins = [
-  'https://healsync-app.vercel.app', // 🟢 Your production frontend
-  'http://localhost:3000'           // 🟢 Keep local for testing
+  'https://healsync-app.vercel.app', 
+  'http://localhost:3000'           
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true, // 🟢 CRITICAL: Required for HttpOnly cookies
+  credentials: true, // 🟢 Required for HttpOnly cookies
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'], // 🟢 Added Cookie header
 }));
 
-// 🟢 CRITICAL: Handle preflight requests
+// Handle preflight requests
 app.options('*', cors());
 
 // 3. Routes
@@ -59,6 +59,7 @@ app.use(PATIENT_ROUTES.BASE, patientRoutes);
 app.use(AVAILABILITY_ROUTES.BASE, availabilityRoutes);
 app.use(APPOINTMENT_ROUTES.BASE, appointmentRoutes);
 
+// Fix: Changed endpoint from /login to / to avoid confusion with frontend routes
 app.get("/", (req, res) => {
   res.send("HealSync Backend is Running!");
 });
@@ -68,7 +69,6 @@ let isCleanupProcessing = false;
 
 cron.schedule("*/15 * * * *", async () => {
   if (isCleanupProcessing) return;
-  
   isCleanupProcessing = true;
   try {
     console.log("🧹 Starting background cleanup...");
@@ -81,5 +81,6 @@ cron.schedule("*/15 * * * *", async () => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  // Use generic log for production
+  console.log(`Server running on port ${PORT}`);
 });
