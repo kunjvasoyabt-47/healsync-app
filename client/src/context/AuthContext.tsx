@@ -17,7 +17,8 @@
     const hasChecked = useRef(false);
 
   const checkAuth = useCallback(async () => {
-  if (hasChecked.current) return;
+  // Don't check if we already have a user (just logged in)
+  if (hasChecked.current || user) return; // ← ADD user check
 
   console.log("🔍 [AuthContext] Starting auth check...");
 
@@ -28,6 +29,7 @@
     console.log("✅ [AuthContext] User authenticated:", res.data?.user);
     if (res.data?.user) {
       setUser(res.data.user);
+      hasChecked.current = true; // ← Move this here
     }
   } catch (error) {
     const err = error as AxiosError;
@@ -49,10 +51,8 @@
     setUser(null);
   } finally {
     setLoading(false);
-    hasChecked.current = true;
   }
-}, [router]);//  🟢 Removed pathname dependency to prevent re-runs on every navigation
-
+}, [router, user]);
     useEffect(() => {
       checkAuth();
     }, [checkAuth]);

@@ -163,7 +163,7 @@
         httpOnly: true,
         secure: true, // Required for sameSite: "none"
         sameSite: "none", 
-        path: "/", // 🟢 Critical: Ensures cookie is available to all routes
+        path: "/", // Critical: Ensures cookie is available to all routes
         maxAge: 30 * 60 * 1000 
       });
 
