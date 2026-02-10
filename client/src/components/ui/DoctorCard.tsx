@@ -7,7 +7,7 @@ export const DoctorCard = ({ doctor }: { doctor: Doctor }) => {
   return (
     <div className="flex flex-col justify-between p-5 transition-all border bg-bg-card border-border-main rounded-2xl shadow-sm hover:shadow-md">
       <div>
-        <div className="flex items-center justify-center w-16 h-16 mb-4 font-bold rounded-full bg-surface text-primary text-xl">
+        <div className="flex items-center justify-center w-16 h-16 mb-4 font-bold rounded-full bg-gray-100 text-primary text-xl">
           {profile?.name ? profile.name[0] : "?"}
         </div>
         

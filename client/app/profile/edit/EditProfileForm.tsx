@@ -105,25 +105,24 @@ export default function EditProfileForm() {
 
         {/* Name Field (Common for both) */}
         <div className="space-y-1">
-          <label className="text-xs font-bold text-text-muted uppercase">Full Name</label>
+          <label className="text-xs font-bold text-text-muted ">Full Name</label>
           <div className="relative">
             <UserIcon className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
             <input
               {...register("name")}
-              placeholder="Enter your name"
               className={`w-full pl-10 pr-4 py-3 bg-bg-surface border rounded-xl outline-none transition-all ${
                 errors.name ? "border-danger ring-1 ring-danger/20" : "border-border-main focus:border-primary"
               }`}
             />
           </div>
-          {errors.name && <p className="text-danger text-[10px] font-bold mt-1 uppercase">{errors.name.message}</p>}
+          {errors.name && <p className="text-danger text-[10px] font-bold mt-1 ">{errors.name.message}</p>}
         </div>
 
         {user.role === "DOCTOR" ? (
           <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-text-muted uppercase">Specialization</label>
+                <label className="text-xs font-bold text-text-muted ">Specialization</label>
                 <input
                   {...register("specialization")}
                   className="w-full p-3 bg-bg-surface border border-border-main rounded-xl focus:border-primary outline-none"
@@ -131,9 +130,8 @@ export default function EditProfileForm() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-text-muted uppercase">Consultation Fees (Fixed)</label>
+                <label className="text-xs font-bold text-text-muted ">Consultation Fees (Fixed)</label>
                 <div className="relative">
-                   <DollarSign className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
                    <input
                     {...register("fees")}
                     readOnly
@@ -144,7 +142,7 @@ export default function EditProfileForm() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-text-muted uppercase">Clinic Address</label>
+              <label className="text-xs font-bold text-text-muted ">Clinic Address</label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
                 <input
@@ -155,7 +153,7 @@ export default function EditProfileForm() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-text-muted uppercase">Short Bio</label>
+              <label className="text-xs font-bold text-text-muted ">Short Bio</label>
               <textarea
                 {...register("bio")}
                 rows={3}
@@ -167,12 +165,11 @@ export default function EditProfileForm() {
           /* Patient Only Fields */
           <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-text-muted uppercase">Phone Number</label>
+              <label className="text-xs font-bold text-text-muted">Phone Number</label>
               <div className="relative">
                 <Phone className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
                 <input
                   {...register("phone")}
-                  placeholder="e.g. 9876543210"
                   className={`w-full pl-10 pr-4 py-3 bg-bg-surface border rounded-xl outline-none transition-all ${
                     errors.phone ? "border-danger ring-1 ring-danger/20" : "border-border-main focus:border-primary"
                   }`}

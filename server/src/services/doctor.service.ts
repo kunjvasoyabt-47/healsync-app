@@ -48,7 +48,8 @@ export const doctorService = {
       select: {
         id: true,
         email: true,
-        doctorProfile: true 
+        doctorProfile: true ,
+        
       }
     });
 

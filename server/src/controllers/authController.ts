@@ -29,7 +29,7 @@ export const login = async (req: Request, res: Response) => {
         path: "/", // 🟢 Critical: Ensures cookie is available to all routes
         sameSite: "none",
         secure: true,
-        maxAge: 15 * 60 * 1000 // 15 minutes
+        maxAge: 60 * 60 * 1000 // 15 minutes
     });
 
     // 3. Return the 'refreshToken' (NOT 'token') to the frontend
@@ -153,7 +153,6 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
 export const refresh = async (req: Request, res: Response) => {
   try {
     const { refreshToken } = req.body;
-    console.log("DEBUG: Attempting refresh with token:", refreshToken); // 🟢 Add this log
 
     if (!refreshToken) return res.status(401).json({ error: "No refresh token provided" });
 
@@ -164,7 +163,7 @@ export const refresh = async (req: Request, res: Response) => {
       secure: true, // Required for sameSite: "none"
       sameSite: "none", 
       path: "/", // 🟢 Critical: Ensures cookie is available to all routes
-      maxAge: 15 * 60 * 1000 
+      maxAge: 60 * 60 * 1000 
     });
 
     return res.status(200).json({ message: "Token refreshed" });

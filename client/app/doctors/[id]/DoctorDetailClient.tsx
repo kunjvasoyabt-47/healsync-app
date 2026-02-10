@@ -122,6 +122,7 @@ export default function DoctorDetailClient({ doctor, doctorId }: { doctor: Docto
                 <Mail className="w-5 h-5 text-primary/70 shrink-0" />
                 <span className="text-sm font-medium truncate">{doctor.email}</span>
               </div>
+          
             </div>
           </div>
         </div>
@@ -192,7 +193,7 @@ export default function DoctorDetailClient({ doctor, doctorId }: { doctor: Docto
                     })}
                   />
                 </div>
-                <p className="text-[10px] text-text-muted px-1 italic">* Supported formats: JPG, PNG, PDF (Max 5MB)</p>
+                <p className="text-[10px] text-text-muted px-1 italic">* Supported formats: JPG, PNG, PDF</p>
               </div>
             </div>
           )}
