@@ -16,7 +16,7 @@ export default async function DoctorDashboardPage() {
 
   try {
     // 2. Use try/catch ONLY for the async logic
-    const response = await axios.get('${process.env.NEXT_PUBLIC_API_URL}/auth/me', {
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
       headers: { Cookie: `accessToken=${accessToken}` },
     });
     userData = response.data.user;
