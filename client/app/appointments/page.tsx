@@ -15,7 +15,7 @@ export default async function MyAppointmentsPage() {
   let appointments = [];
   try {
     // 🟢 SSR: Fetching data on the server for SEO and speed
-    const response = await axios.get("http://localhost:5000/api/appointments/patient-list", {
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/appointments/patient-list`, {
       headers: { Cookie: `accessToken=${accessToken}` },
     });
     appointments = response.data;

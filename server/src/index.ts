@@ -28,12 +28,29 @@ app.post(
 // 2. Global Middleware
 app.use(express.json());
 app.use(cookieParser());
+const allowedOrigins = [
+  'https://healsync-app.vercel.app', // 🟢 Your production frontend
+  'http://localhost:3000'           // 🟢 Keep local for testing
+];
+
 app.use(cors({
-  origin: ["http://localhost:3000"],
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // 🟢 CRITICAL: Required for HttpOnly cookies
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+// 🟢 CRITICAL: Handle preflight requests
+app.options('*', cors());
 
 // 3. Routes
 app.use(AUTH_ROUTES.BASE, authRoutes);
