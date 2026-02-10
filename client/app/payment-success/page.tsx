@@ -8,7 +8,7 @@ export default function PaymentSuccessPage() {
         Thank you. Your appointment has been confirmed and the doctor has been notified.
       </p>
       <Link 
-        href="/patient" 
+        href="/appointments" 
         className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
       >
         Go to Dashboard

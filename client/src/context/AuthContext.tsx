@@ -16,28 +16,42 @@
     const router = useRouter();
     const hasChecked = useRef(false);
 
-    const checkAuth = useCallback(async () => {
-    if (hasChecked.current) return;
+  const checkAuth = useCallback(async () => {
+  if (hasChecked.current) return;
 
-    try {
-      setLoading(true);
-      const res = await api.get(AUTH_ROUTES.ME);
-      
-      if (res.data?.user) {
-        setUser(res.data.user);
-      }
-    } catch (error) {
+  console.log("🔍 [AuthContext] Starting auth check...");
+
+  try {
+    setLoading(true);
+    const res = await api.get(AUTH_ROUTES.ME);
+    
+    console.log("✅ [AuthContext] User authenticated:", res.data?.user);
+    if (res.data?.user) {
+      setUser(res.data.user);
+    }
+  } catch (error) {
     const err = error as AxiosError;
-    // 🟢 Don't log 401s if you expect the interceptor to handle them
-  if (err.response?.status !== 401) {
-      console.error("Auth verification failed:", err.response?.status);
-      setUser(null); 
+    console.log("❌ [AuthContext] Auth check failed with status:", err.response?.status);
+    
+    if (err.response?.status === 401) {
+      const refreshToken = localStorage.getItem("refreshToken");
+      console.log("🔑 [AuthContext] RefreshToken in localStorage:", refreshToken ? "EXISTS" : "MISSING");
+      
+      if (refreshToken) {
+        console.log("⚠️ [AuthContext] Session revoked - forcing logout");
+        localStorage.removeItem("refreshToken");
+        setUser(null);
+        router.replace(PAGE_ROUTES.LOGIN);
+        return;
+      }
     }
+    
+    setUser(null);
   } finally {
-      setLoading(false);
-      hasChecked.current = true;
-    }
-  }, []); // 🟢 Removed pathname dependency to prevent re-runs on every navigation
+    setLoading(false);
+    hasChecked.current = true;
+  }
+}, [router]);//  🟢 Removed pathname dependency to prevent re-runs on every navigation
 
     useEffect(() => {
       checkAuth();
