@@ -30,13 +30,13 @@ export default function LoginClient() {
       throw new Error("No refresh token received");
     }
 
-    // 🟢 Store the refresh token first
+    // Store the refresh token first
     localStorage.setItem('refreshToken', refreshToken);
 
-    // 🟢 Now fetch the full user data
+    //  Now fetch the full user data
     const userRes = await api.get(AUTH_ROUTES.ME);
     
-    // 🟢 Call login with the complete user object
+    //  Call login with the complete user object
     login(userRes.data.user, refreshToken);
     
   } catch (err) {

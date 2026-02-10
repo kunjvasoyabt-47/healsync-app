@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import * as AppointmentService from "../services/appointment.service";
 
-// 🟢 Improved Type Safety: Explicitly define the user structure from your Auth middleware
+// Improved Type Safety: Explicitly define the user structure from your Auth middleware
 interface AuthenticatedRequest extends Request {
   file?: Express.Multer.File; // Use proper Multer types
   user?: {
@@ -40,7 +40,7 @@ export const createAppointment = async (req: AuthenticatedRequest, res: Response
     });
 
   } catch (error: any) {
-    // 🟢 Handle specific Service-level errors
+    //  Handle specific Service-level errors
     if (error.message === "DOCTOR_NOT_FOUND") {
       return res.status(404).json({ error: "Doctor not found" });
     }
@@ -48,7 +48,7 @@ export const createAppointment = async (req: AuthenticatedRequest, res: Response
       return res.status(404).json({ error: "Patient profile incomplete" });
     }
     
-    // 🟢 Handle Race Conditions (Service check OR Database unique constraint)
+    //  Handle Race Conditions (Service check OR Database unique constraint)
     // This catches the case where two people book the same slot simultaneously
     if (error.message === "SLOT_ALREADY_BOOKED" || error.code === "P2002") {
       return res.status(409).json({ 

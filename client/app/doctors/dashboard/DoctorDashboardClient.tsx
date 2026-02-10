@@ -5,9 +5,9 @@ import api from "../../../src/lib/axios";
 import { Appointment } from "@/src/interfaces/appointment.interface";
 import Link from "next/dist/client/link";
 import AnalysisClient from "../analysis/AnalysisClient";
-import { FileText } from "lucide-react"; // 🟢 Added for Report Icon
+import { FileText } from "lucide-react"; //  Added for Report Icon
 
-// 🟢 Extended Interface to include Backend fields
+// Extended Interface to include Backend fields
 interface AppointmentWithExtras extends Appointment {
   reason?: string;
   reportUrl?: string;
@@ -38,7 +38,7 @@ export default function DoctorDashboardClient({ doctorId }: { doctorId: string }
     const fetchAppointments = async () => {
       try {
         const res = await api.get("/doctors/my-appointments");
-        // 🟢 Backend now sends { success: true, data: [...] }
+        //  Backend now sends { success: true, data: [...] }
         setAppointments(res.data.data || []);
       } catch (err) {
         console.error("Failed to fetch appointments", err);
