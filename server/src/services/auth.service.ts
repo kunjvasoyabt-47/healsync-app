@@ -82,15 +82,17 @@ export const authService = {
         const profileId = user.role === "DOCTOR" ? user.doctorProfile?.id : user.patientProfile?.id;
 
         // Revoke previous sessions (Single Device Logic)
-        await prisma.refreshToken.updateMany({
+       // Revoke previous sessions (Single Device Logic)
+        const revokedCount = await prisma.refreshToken.updateMany({
             where: { userId: user.id, revoked: false },
             data: { revoked: true }
         });
+        console.log(`🔄 Revoked ${revokedCount.count} previous sessions for user: ${email}`);
 
         const accessToken = jwt.sign(
             { userId: user.id, role: user.role, profileId, version: user.tokenVersion },
             process.env.JWT_SECRET!,
-            { expiresIn: "60m" }
+            { expiresIn: "30m" }
         );
 
         const refreshToken = uuidv4();
@@ -108,32 +110,44 @@ export const authService = {
     /**
      * Handles Access Token rotation via Refresh Token
      */
-    refreshSession: async (token: string) => {
-    const savedToken = await prisma.refreshToken.findUnique({
-        where: { token: token.trim() },
-        include: { user: { include: { doctorProfile: true, patientProfile: true } } }
-    });
+    /**
+ * Handles Access Token rotation via Refresh Token
+ */
+refreshSession: async (token: string) => {
+  const savedToken = await prisma.refreshToken.findUnique({
+    where: { token: token.trim() },
+    include: { user: { include: { doctorProfile: true, patientProfile: true } } }
+  });
 
-    // 🟢 Log if token is not found to debug the 401
-    if (!savedToken) {
-        console.error("Refresh Service: Token not found in DB");
-        throw new Error("Invalid or expired session");
-    }
+  // 🟢 More specific error messages for debugging
+  if (!savedToken) {
+    console.error("❌ Refresh Service: Token not found in DB");
+    throw new Error("Invalid or expired session");
+  }
 
-    if (savedToken.revoked || savedToken.expiresAt < new Date()) {
-        throw new Error("Invalid or expired session");
-    }
+  // 🟢 CRITICAL: Explicitly check for revoked tokens (single device login)
+  if (savedToken.revoked) {
+    console.error("❌ Refresh Service: Token was revoked (logged in on another device)");
+    throw new Error("Invalid or expired session");
+  }
 
-    const user = savedToken.user;
-    const profileId = user.role === "DOCTOR" ? user.doctorProfile?.id : user.patientProfile?.id;
+  if (savedToken.expiresAt < new Date()) {
+    console.error("❌ Refresh Service: Token expired naturally");
+    throw new Error("Invalid or expired session");
+  }
 
-    // 🟢 Ensure the payload matches your Login JWT exactly
-    return jwt.sign(
-        { userId: user.id, role: user.role, profileId, version: user.tokenVersion },
-        process.env.JWT_SECRET!,
-        { expiresIn: "60m" }
-    );
-    } ,
+  const user = savedToken.user;
+  const profileId = user.role === "DOCTOR" ? user.doctorProfile?.id : user.patientProfile?.id;
+
+  console.log("✅ Refresh Service: Token validated, generating new access token");
+
+  // Generate new access token
+  return jwt.sign(
+    { userId: user.id, role: user.role, profileId, version: user.tokenVersion },
+    process.env.JWT_SECRET!,
+    { expiresIn: "30m" }
+  );
+},
 
     /**
      * Revokes a session in the database
