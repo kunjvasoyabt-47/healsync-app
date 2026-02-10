@@ -110,24 +110,35 @@
     const expiryTime = new Date(Date.now() + 3 * 60 * 60 * 1000);
 
     // 4. Atomic Transaction: Update Appointment & Create Payment Record
-    const result = await prisma.$transaction(async (tx) => {
-      const updatedAppt = await tx.appointment.update({
-        where: { id: appointmentId },
-        data: { status: "APPROVED_UNPAID" }
-      });
+ // 4. Atomic Transaction: Update Appointment & Create OR Update Payment Record
+const result = await prisma.$transaction(async (tx) => {
+  const updatedAppt = await tx.appointment.update({
+    where: { id: appointmentId },
+    data: { status: "APPROVED_UNPAID" }
+  });
 
-      await tx.payment.create({
-        data: {
-          amount: appointment.doctor.fees,
-          stripeSessionId: session.id,
-          expiresAt: expiryTime,
-          appointmentId: appointment.id,
-          status: "PENDING"
-        }
-      });
+  // 🟢 CHANGE: Use upsert to prevent "Unique constraint" errors
+  await tx.payment.upsert({
+    where: { 
+      appointmentId: appointment.id 
+    },
+    update: {
+      amount: appointment.doctor.fees,
+      stripeSessionId: session.id, // Update with the new Stripe link
+      expiresAt: expiryTime,
+      status: "PENDING"
+    },
+    create: {
+      amount: appointment.doctor.fees,
+      stripeSessionId: session.id,
+      expiresAt: expiryTime,
+      appointmentId: appointment.id,
+      status: "PENDING"
+    }
+  });
 
-      return { updatedAppt, paymentUrl: session.url };
-    });
+  return { updatedAppt, paymentUrl: session.url };
+});
 
     // 5. Send Email to Patient (Outside transaction so DB isn't locked if email is slow)
     try {
