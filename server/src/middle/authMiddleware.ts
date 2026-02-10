@@ -7,14 +7,20 @@ declare global {
       user?: any; 
     }
   }
-}export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
-  // 🔍 Add this log to see what Render is actually receiving
-  const token = req.cookies?.accessToken || req.headers.authorization?.split(" ")[1];
-  
-  console.log(`[AUTH] Path: ${req.path} | Token Source: ${req.cookies?.accessToken ? "Cookie" : req.headers.authorization ? "Header" : "NONE"}`);
+}
+export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
+  const cookieToken = req.cookies?.accessToken;
+  const headerToken = req.headers.authorization?.split(" ")[1];
+  const token = cookieToken || headerToken;
+
+  // 🔍 Improved Logging for Production Debugging
+  console.log(`[AUTH CHECK] Path: ${req.path}`);
+  console.log(`- Cookie Present: ${!!cookieToken}`);
+  console.log(`- Header Present: ${!!headerToken}`);
 
   if (!token) {
-    return res.status(401).json({ message: "No token provided - Redirecting" });
+    console.warn(`[AUTH] ❌ Access Denied: No token found for ${req.path}`);
+    return res.status(401).json({ message: "Session expired. Please login again." });
   }
 
   try {
@@ -26,6 +32,7 @@ declare global {
     }; 
     next();
   } catch (error: any) {
+    console.error(`[AUTH] ❌ JWT Error: ${error.message}`);
     const message = error.name === "TokenExpiredError" ? "Token expired" : "Invalid token";
     return res.status(401).json({ message });
   }
