@@ -20,25 +20,30 @@ export default function LoginClient() {
     mode: "onChange",
   });
 
-  const onSubmit = async (data: LoginInput) => {
-    try {
-      const res = await api.post(AUTH_ROUTES.LOGIN, data);
-      
-      // Extract refreshToken and user data from the backend response
-      const { refreshToken, ...userData } = res.data;
+ const onSubmit = async (data: LoginInput) => {
+  try {
+    const res = await api.post(AUTH_ROUTES.LOGIN, data);
+    
+    const { refreshToken, role, profileId } = res.data;
 
-      if (!refreshToken) {
-        throw new Error("No refresh token received");
-      }
-
-      // Updated AuthContext call with user object and token string
-      login(userData, refreshToken);
-      
-    } catch (err) {
-      const error = err as AxiosError<{ message: string }>;
-      alert(error.response?.data?.message || "Login failed");
+    if (!refreshToken) {
+      throw new Error("No refresh token received");
     }
-  };
+
+    // 🟢 Store the refresh token first
+    localStorage.setItem('refreshToken', refreshToken);
+
+    // 🟢 Now fetch the full user data
+    const userRes = await api.get(AUTH_ROUTES.ME);
+    
+    // 🟢 Call login with the complete user object
+    login(userRes.data.user, refreshToken);
+    
+  } catch (err) {
+    const error = err as AxiosError<{ message: string }>;
+    alert(error.response?.data?.message || "Login failed");
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg-body px-4">
