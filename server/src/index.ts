@@ -15,10 +15,8 @@ import { runAppointmentCleanup } from "./services/appointment.service";
 import { AUTH_ROUTES, AVAILABILITY_ROUTES, DOCTOR_ROUTES, PATIENT_ROUTES, APPOINTMENT_ROUTES } from "./config/routes";
 
 const app = express();
-const PORT = process.env.PORT || 10000;
-
-// 🟢 NEW: Trust Proxy (Required for Render to allow secure cookies)
 app.set("trust proxy", 1); 
+const PORT = process.env.PORT || 10000;
 
 // 🟢 1. Stripe Webhook (MUST be before ANY app.use(express.json()))
 app.post(
