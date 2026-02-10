@@ -1,36 +1,44 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+"use client";
+
+import { useAuth } from "../../../src/context/AuthContext";
 import DoctorDashboardClient from "./DoctorDashboardClient";
-import axios from "axios";
 
-export default async function DoctorDashboardPage() {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get("accessToken")?.value;
+export default function DoctorDashboardPage() {
+  const { user, loading } = useAuth();
 
-  if (!accessToken) {
-    redirect("/login");
+  // Show loading while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          <p className="text-gray-500 font-medium">Loading dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
-  // 1. Declare a variable to hold your user data
-  let userData = null;
-
-  try {
-    // 2. Use try/catch ONLY for the async logic
-    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
-      headers: { Cookie: `accessToken=${accessToken}` },
-    });
-    userData = response.data.user;
-  } catch (error) {
-    // 3. Handle fetching errors here
-    console.error("Dashboard Auth Error:", error);
-
+  // If not authenticated or not a doctor, show access denied
+  if (!user || user.role !== "DOCTOR") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center p-8">
+          <h1 className="text-3xl font-bold text-red-600 mb-4">Access Denied</h1>
+          <p className="text-gray-600 mb-2">You must be logged in as a doctor to view this page.</p>
+          <p className="text-sm text-gray-500 mb-6">
+            Current status: {user ? `Logged in as ${user.role}` : "Not logged in"}
+          </p>
+          <a 
+            href="/login" 
+            className="inline-block bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-xl font-semibold transition-all"
+          >
+            Go to Login
+          </a>
+        </div>
+      </div>
+    );
   }
 
-  // 4. Perform security checks outside the try/catch
-  if (!userData || userData.role !== "DOCTOR") {
-    redirect("/login");
-  }
-
-  // 5. Return the JSX at the top level of the function
-  return <DoctorDashboardClient doctorId={userData.id} />;
+  // User is authenticated as doctor - show dashboard
+  return <DoctorDashboardClient doctorId={user.id} />;
 }

@@ -17,7 +17,7 @@ const router = Router();
 router.get(DOCTOR_ROUTES.GET_ALL, getAllDoctors);
 
 /**
- * 🔒 PROTECTED ROUTES (DOCTOR ONLY)
+ * PROTECTED ROUTES (DOCTOR ONLY)
  * Using a single router-level middleware for all following routes
  * to keep the code DRY (Don't Repeat Yourself).
  */
@@ -28,7 +28,7 @@ router.patch(DOCTOR_ROUTES.UPDATE_STATUS, updateStatus);
 router.get(DOCTOR_ROUTES.ANAYTICS, getAnalytics);
 
 /**
- * ✅ PARAMETERIZED ROUTE
+ * PARAMETERIZED ROUTE
  * This is technically public in many apps, but if it stays protected, 
  * keep it here. If it should be public, move it ABOVE router.use(verifyToken).
  */
