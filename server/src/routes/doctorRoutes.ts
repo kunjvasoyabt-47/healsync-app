@@ -1,18 +1,37 @@
-import express from "express";
-import { getAllDoctors, getAnalytics, getDoctorById, getMyAppointments, updateStatus } from "../controllers/doctorController";
+import { Request, Response, Router } from "express";
+import { 
+  getAllDoctors, 
+  getAnalytics, 
+  getDoctorById, 
+  getMyAppointments, 
+  updateStatus 
+} from "../controllers/doctorController";
 import { verifyToken } from "../middle/authMiddleware";
 import { DOCTOR_ROUTES } from "../config/routes";
-const router = express.Router();
 
-// ✅ PUBLIC ROUTES
+const router = Router();
+
+/** * ✅ PUBLIC ROUTES
+ * Accessible by anyone (e.g., patient browsing)
+ */
 router.get(DOCTOR_ROUTES.GET_ALL, getAllDoctors);
 
-// ✅ SPECIFIC PROTECTED ROUTES - MUST COME BEFORE /:id
-router.get(DOCTOR_ROUTES.GET_APPOINTMENTS, verifyToken, getMyAppointments);
-router.patch(DOCTOR_ROUTES.UPDATE_STATUS, verifyToken, updateStatus);
-router.get(DOCTOR_ROUTES.ANAYTICS, verifyToken, getAnalytics);
+/**
+ * 🔒 PROTECTED ROUTES (DOCTOR ONLY)
+ * Using a single router-level middleware for all following routes
+ * to keep the code DRY (Don't Repeat Yourself).
+ */
+router.use(verifyToken); 
 
-// ✅ PARAMETERIZED ROUTE - MUST BE LAST
+router.get(DOCTOR_ROUTES.GET_APPOINTMENTS, getMyAppointments);
+router.patch(DOCTOR_ROUTES.UPDATE_STATUS, updateStatus);
+router.get(DOCTOR_ROUTES.ANAYTICS, getAnalytics);
+
+/**
+ * ✅ PARAMETERIZED ROUTE
+ * This is technically public in many apps, but if it stays protected, 
+ * keep it here. If it should be public, move it ABOVE router.use(verifyToken).
+ */
 router.get(DOCTOR_ROUTES.GET_BY_ID, getDoctorById);
 
 export default router;
