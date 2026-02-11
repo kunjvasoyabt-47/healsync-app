@@ -1,1 +1,1 @@
-{"version":3,"file":"email.d.ts","sourceRoot":"","sources":["../../src/utils/email.ts"],"names":[],"mappings":"AAGA,eAAO,MAAM,SAAS,GAAU,SAAS;IACvC,KAAK,EAAE,MAAM,CAAC;IACd,OAAO,EAAE,MAAM,CAAC;IAChB,OAAO,EAAE,MAAM,CAAA;CAChB,KAAG,OAAO,CAAC,IAAI,CA4Cf,CAAC"}
+{"version":3,"file":"email.d.ts","sourceRoot":"","sources":["../../src/utils/email.ts"],"names":[],"mappings":"AAEA,UAAU,YAAY;IACpB,KAAK,EAAE,MAAM,CAAC;IACd,OAAO,EAAE,MAAM,CAAC;IAChB,OAAO,EAAE,MAAM,CAAC;CACjB;AAED,eAAO,MAAM,SAAS,GAAU,SAAS,YAAY,KAAG,OAAO,CAAC,IAAI,CAkCnE,CAAC"}

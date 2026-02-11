@@ -7,31 +7,31 @@ export declare const registerSchema: z.ZodEffects<z.ZodObject<{
     specialization: z.ZodOptional<z.ZodString>;
     fees: z.ZodOptional<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
+    name: string;
     email: string;
     password: string;
     role: "DOCTOR" | "PATIENT";
-    name: string;
     specialization?: string | undefined;
     fees?: number | undefined;
 }, {
+    name: string;
     email: string;
     password: string;
     role: "DOCTOR" | "PATIENT";
-    name: string;
     specialization?: string | undefined;
     fees?: number | undefined;
 }>, {
+    name: string;
     email: string;
     password: string;
     role: "DOCTOR" | "PATIENT";
-    name: string;
     specialization?: string | undefined;
     fees?: number | undefined;
 }, {
+    name: string;
     email: string;
     password: string;
     role: "DOCTOR" | "PATIENT";
-    name: string;
     specialization?: string | undefined;
     fees?: number | undefined;
 }>;

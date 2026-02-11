@@ -5,28 +5,31 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.verifyToken = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const db_1 = require("../config/db");
-const verifyToken = async (req, res, next) => {
-    const token = req.cookies.accessToken;
+const verifyToken = (req, res, next) => {
+    const cookieToken = req.cookies?.accessToken;
+    const headerToken = req.headers.authorization?.split(" ")[1];
+    const token = cookieToken || headerToken;
+    // 🔍 Improved Logging for Production Debugging
+    console.log(`[AUTH CHECK] Path: ${req.path}`);
+    console.log(`- Cookie Present: ${!!cookieToken}`);
+    console.log(`- Header Present: ${!!headerToken}`);
     if (!token) {
-        return res.status(401).json({ error: "Unauthorized" });
+        console.warn(`[AUTH] ❌ Access Denied: No token found for ${req.path}`);
+        return res.status(401).json({ message: "Session expired. Please login again." });
     }
     try {
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
-        // --- THE TOKEN VERSION CHECK ---
-        const user = await db_1.prisma.user.findUnique({
-            where: { id: decoded.userId },
-            select: { tokenVersion: true } // Fetch ONLY the version to keep it fast
-        });
-        if (!user || user.tokenVersion !== decoded.version) {
-            console.warn("⚠️ Security Alert: Token version mismatch for user", decoded.userId);
-            return res.status(401).json({ error: "Session expired. Please login again." });
-        }
-        req.user = decoded;
+        req.user = {
+            userId: decoded.userId || decoded.id,
+            profileId: decoded.profileId,
+            role: decoded.role
+        };
         next();
     }
     catch (error) {
-        return res.status(403).json({ error: "Invalid token" });
+        console.error(`[AUTH] ❌ JWT Error: ${error.message}`);
+        const message = error.name === "TokenExpiredError" ? "Token expired" : "Invalid token";
+        return res.status(401).json({ message });
     }
 };
 exports.verifyToken = verifyToken;

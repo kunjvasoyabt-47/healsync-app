@@ -1,6 +1,8 @@
-export declare const sendEmail: (options: {
+interface EmailOptions {
     email: string;
     subject: string;
     message: string;
-}) => Promise<void>;
+}
+export declare const sendEmail: (options: EmailOptions) => Promise<void>;
+export {};
 //# sourceMappingURL=email.d.ts.map

@@ -29,6 +29,9 @@ export declare const authService: {
     /**
      * Handles Access Token rotation via Refresh Token
      */
+    /**
+ * Handles Access Token rotation via Refresh Token
+ */
     refreshSession: (token: string) => Promise<string>;
     /**
      * Revokes a session in the database
@@ -42,5 +45,46 @@ export declare const authService: {
      * Resets the password using a valid token
      */
     resetPassword: (token: string, newPassword: string) => Promise<boolean>;
+    fetchMe: (userId: string) => Promise<{
+        doctorProfile: {
+            name: string;
+            id: string;
+            specialization: string;
+        } | null;
+        patientProfile: {
+            name: string;
+            id: string;
+        } | null;
+        id: string;
+        email: string;
+        role: import(".prisma/client").$Enums.Role;
+    }>;
+    updatePatientProfile: (userId: string, data: any) => Promise<{
+        name: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        phone: string | null;
+        userId: string;
+        imageUrl: string | null;
+    }>;
+    updateDoctorProfile: (userId: string, data: any) => Promise<{
+        name: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        specialization: string;
+        fees: number;
+        userId: string;
+        registrationNumber: string;
+        experience: number | null;
+        qualifications: string | null;
+        bio: string | null;
+        imageUrl: string | null;
+        city: string | null;
+        state: string | null;
+        country: string;
+        address: string | null;
+    }>;
 };
 //# sourceMappingURL=auth.service.d.ts.map

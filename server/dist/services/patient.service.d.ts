@@ -9,10 +9,10 @@ export declare const patientService: {
             role: import(".prisma/client").$Enums.Role;
         };
     } & {
+        name: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        name: string;
         phone: string | null;
         userId: string;
         imageUrl: string | null;
@@ -21,10 +21,10 @@ export declare const patientService: {
      * Business logic to update patient details.
      */
     updateProfile: (userId: string, updateData: any) => Promise<{
+        name: string;
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        name: string;
         phone: string | null;
         userId: string;
         imageUrl: string | null;
